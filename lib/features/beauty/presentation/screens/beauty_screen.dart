@@ -99,7 +99,7 @@ const _eveningBuenosAires = [
 
 const _eveningSunday = [
   RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹'),
-  RoutineStep(name: 'Bogotà', description: 'Applica il prodotto sul viso come da indicazioni. Lascia agire il tempo necessario, poi risciacqua se richiesto.', emoji: '🌿'),
+  RoutineStep(name: 'Retinal', description: 'Retinaldeide — applica uno strato sottile su tutto il viso. Evita contorno occhi. Inizia 2-3 volte a settimana.', emoji: '🌙'),
   RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', emoji: '💧'),
   RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', emoji: '💜'),
 ];
@@ -214,7 +214,7 @@ class _BeautyScreenState extends State<BeautyScreen> {
               timeLabel: 'Sera 🌙',
               steps: eveningId.steps.length,
               specialNote: _selectedWeekday == 7
-                  ? 'Bogotà'
+                  ? 'Retinal'
                   : _selectedWeekday == 3
                       ? 'Buenos Aires (no Retinal)'
                       : 'Retinal',
