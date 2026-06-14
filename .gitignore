@@ -19,7 +19,7 @@ android/key.properties
 **/*.keystore
 **/*.jks
 
-# iOS
+# iOS - solo file generati automaticamente
 ios/.symlinks/
 ios/Flutter/App.framework
 ios/Flutter/Flutter.framework
@@ -33,6 +33,7 @@ ios/Flutter/flutter_export_environment.sh
 ios/ServiceDefinitions.json
 ios/Runner/GeneratedPluginRegistrant.*
 ios/Pods/
+ios/Podfile.lock
 
 # macOS
 macos/Flutter/GeneratedPluginRegistrant.swift
