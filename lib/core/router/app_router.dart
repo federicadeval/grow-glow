@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/home/presentation/dashboard_screen.dart';
 import '../../features/fitness/presentation/screens/fitness_screen.dart';
 import '../../features/fitness/presentation/screens/workout_screen.dart';
 import '../../features/fitness/presentation/screens/diet_screen.dart';
@@ -43,7 +44,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const FitnessScreen(),
+            builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
             path: '/fitness',
