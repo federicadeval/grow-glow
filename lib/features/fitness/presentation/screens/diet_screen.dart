@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
@@ -786,6 +789,21 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      if (kIsWeb)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _startCameraScanner,
+                            icon: const Icon(Icons.camera_alt_rounded),
+                            label: const Text('Scansiona con la camera'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.mintDark,
+                              side: const BorderSide(color: AppColors.mintDark),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 24),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -815,6 +833,17 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
         ],
       ),
     );
+  }
+
+  void _startCameraScanner() {
+    if (!kIsWeb) return;
+    js.context.callMethod('startBarcodeScanner', [
+      js.allowInterop((String code) {
+        if (!mounted) return;
+        setState(() => _barcodeCtrl.text = code);
+        _lookupBarcode();
+      }),
+    ]);
   }
 
   Future<void> _lookupBarcode() async {
