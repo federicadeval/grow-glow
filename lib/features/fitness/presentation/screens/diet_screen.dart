@@ -214,7 +214,7 @@ class _KcalPill extends StatelessWidget {
   }
 }
 
-class _MealCard extends StatelessWidget {
+class _MealCard extends StatefulWidget {
   final MealType type;
   final MealEntry meal;
   final bool isToday;
@@ -230,72 +230,188 @@ class _MealCard extends StatelessWidget {
   });
 
   @override
+  State<_MealCard> createState() => _MealCardState();
+}
+
+class _MealCardState extends State<_MealCard> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final meal = widget.meal;
     final isEmpty = meal.isEmpty;
+    final hasIngredients = meal.ingredients.isNotEmpty;
 
     return GestureDetector(
-      onTap: onEdit,
+      onTap: isEmpty ? widget.onEdit : () => setState(() => _expanded = !_expanded),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isEmpty ? AppColors.mint.withValues(alpha: 0.2) : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: isEmpty
-              ? Border.all(color: AppColors.mintDark.withValues(alpha: 0.25), style: BorderStyle.solid)
+              ? Border.all(color: AppColors.mintDark.withValues(alpha: 0.25))
               : null,
         ),
-        child: Row(
+        child: Column(
           children: [
-            Text(type.emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Text(type.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                      if (meal.isEatingOut) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFE0B2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text('🍽️ fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
+                  Text(widget.type.emoji, style: const TextStyle(fontSize: 28)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(widget.type.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            if (meal.isEatingOut) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(color: const Color(0xFFFFE0B2), borderRadius: BorderRadius.circular(8)),
+                                child: const Text('🍽️ fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
+                              ),
+                            ],
+                          ],
                         ),
+                        const SizedBox(height: 2),
+                        if (isEmpty)
+                          Text('Tocca per aggiungere', style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.7)))
+                        else ...[
+                          Text(meal.name, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              _MacroPill('🔥 ${meal.effectiveKcal}', AppColors.fitnessDark, AppColors.fitness),
+                              if (hasIngredients) ...[
+                                const SizedBox(width: 6),
+                                _MacroPill('P ${meal.totalProtein.round()}g', AppColors.peachDark, AppColors.peach),
+                                const SizedBox(width: 6),
+                                _MacroPill('C ${meal.totalCarbs.round()}g', AppColors.mintDark, AppColors.mint),
+                                const SizedBox(width: 6),
+                                _MacroPill('G ${meal.totalFat.round()}g', AppColors.lavenderDark, AppColors.lavender),
+                              ],
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  if (isEmpty)
-                    Text('Tocca per aggiungere', style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.7)))
-                  else ...[
-                    Text(meal.name, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                    if (meal.notes.isNotEmpty)
-                      Text(meal.notes, style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withValues(alpha: 0.7))),
-                    const SizedBox(height: 4),
-                    Text('${meal.effectiveKcal} kcal',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark)),
+                  if (!isEmpty) ...[
+                    Column(
+                      children: [
+                        IconButton(
+                          onPressed: widget.onEdit,
+                          icon: const Icon(Icons.edit_rounded, size: 18),
+                          color: AppColors.textSecondary,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        if (widget.onClear != null) ...[
+                          const SizedBox(height: 8),
+                          IconButton(
+                            onPressed: widget.onClear,
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                            color: AppColors.textSecondary,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (hasIngredients) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
                   ],
                 ],
               ),
             ),
-            if (!isEmpty && onClear != null)
-              IconButton(
-                onPressed: onClear,
-                icon: const Icon(Icons.close_rounded, size: 18),
-                color: AppColors.textSecondary,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+
+            // Expanded ingredient list
+            if (_expanded && hasIngredients)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    Text('Ingredienti', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                    const SizedBox(height: 8),
+                    ...meal.ingredients.map((ing) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(ing.name, style: const TextStyle(fontSize: 12))),
+                          Text('${ing.grams.round()}g', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 52,
+                            child: Text('${ing.kcal} kcal',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.mintDark)),
+                          ),
+                        ],
+                      ),
+                    )),
+                    const Divider(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _MacroDetail('🥩 Prot.', '${meal.totalProtein.round()}g'),
+                        _MacroDetail('🍞 Carb.', '${meal.totalCarbs.round()}g'),
+                        _MacroDetail('🥑 Grassi', '${meal.totalFat.round()}g'),
+                        _MacroDetail('🔥 Kcal', '${meal.effectiveKcal}'),
+                      ],
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
       ),
     );
   }
+}
+
+class _MacroPill extends StatelessWidget {
+  final String text;
+  final Color color;
+  final Color bg;
+  const _MacroPill(this.text, this.color, this.bg);
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+    child: Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+  );
+}
+
+class _MacroDetail extends StatelessWidget {
+  final String label;
+  final String value;
+  const _MacroDetail(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+      Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+    ],
+  );
 }
 
 class _MealEditSheet extends StatefulWidget {

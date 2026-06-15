@@ -6,20 +6,42 @@ class Ingredient {
   final String name;
   final double grams;
   final double kcalPer100g;
+  final double proteinPer100g;
+  final double carbsPer100g;
+  final double fatPer100g;
 
-  const Ingredient({required this.name, required this.grams, required this.kcalPer100g});
+  const Ingredient({
+    required this.name,
+    required this.grams,
+    required this.kcalPer100g,
+    this.proteinPer100g = 0,
+    this.carbsPer100g = 0,
+    this.fatPer100g = 0,
+  });
 
-  int get kcal => (grams * kcalPer100g / 100).round();
+  int get kcal     => (grams * kcalPer100g / 100).round();
+  double get protein => grams * proteinPer100g / 100;
+  double get carbs   => grams * carbsPer100g / 100;
+  double get fat     => grams * fatPer100g / 100;
 
-  Ingredient copyWith({double? grams}) =>
-      Ingredient(name: name, grams: grams ?? this.grams, kcalPer100g: kcalPer100g);
+  Ingredient copyWith({double? grams}) => Ingredient(
+    name: name, grams: grams ?? this.grams,
+    kcalPer100g: kcalPer100g, proteinPer100g: proteinPer100g,
+    carbsPer100g: carbsPer100g, fatPer100g: fatPer100g,
+  );
 
-  Map<String, dynamic> toJson() => {'name': name, 'grams': grams, 'kcalPer100g': kcalPer100g};
+  Map<String, dynamic> toJson() => {
+    'name': name, 'grams': grams, 'kcalPer100g': kcalPer100g,
+    'proteinPer100g': proteinPer100g, 'carbsPer100g': carbsPer100g, 'fatPer100g': fatPer100g,
+  };
 
   factory Ingredient.fromJson(Map<String, dynamic> j) => Ingredient(
     name: j['name'] as String,
     grams: (j['grams'] as num).toDouble(),
     kcalPer100g: (j['kcalPer100g'] as num).toDouble(),
+    proteinPer100g: (j['proteinPer100g'] as num? ?? 0).toDouble(),
+    carbsPer100g: (j['carbsPer100g'] as num? ?? 0).toDouble(),
+    fatPer100g: (j['fatPer100g'] as num? ?? 0).toDouble(),
   );
 }
 
@@ -64,9 +86,12 @@ class MealEntry {
 
   bool get isEmpty => name.isEmpty;
 
-  /// Returns ingredients-based kcal if available, otherwise manual kcal.
   int get effectiveKcal =>
       ingredients.isNotEmpty ? ingredients.fold(0, (s, i) => s + i.kcal) : kcal;
+
+  double get totalProtein => ingredients.fold(0.0, (s, i) => s + i.protein);
+  double get totalCarbs   => ingredients.fold(0.0, (s, i) => s + i.carbs);
+  double get totalFat     => ingredients.fold(0.0, (s, i) => s + i.fat);
 
   MealEntry copyWith({
     String? name,
