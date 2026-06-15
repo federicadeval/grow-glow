@@ -33,6 +33,13 @@ class _DietScreenState extends ConsumerState<DietScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Dieta 🥗'),
+        actions: [
+          TextButton.icon(
+            onPressed: () => _confirmGenerate(context, ref),
+            icon: const Text('✨', style: TextStyle(fontSize: 16)),
+            label: const Text('Genera', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -130,6 +137,37 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                 );
               }).toList(),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmGenerate(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('✨ Genera piano settimanale'),
+        content: const Text(
+          'Verrà generato un piano vegetariano per tutta la settimana. '
+          'I pasti esistenti verranno sostituiti. Puoi modificarli in qualsiasi momento.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(mealPlanProvider.notifier).generatePlan();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Piano settimanale generato ✓')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+            child: const Text('Genera'),
           ),
         ],
       ),

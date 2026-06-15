@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/models/meal_plan_model.dart';
+import '../domain/meal_plan_generator.dart';
 
 class MealPlanState {
   final WeekMealPlan plan;
@@ -41,6 +42,12 @@ class MealPlanNotifier extends Notifier<MealPlanState> {
 
   Future<void> clearMeal(int dayIndex, MealType type) async {
     await setMeal(dayIndex, type, MealEntry.empty);
+  }
+
+  Future<void> generatePlan() async {
+    final plan = generateWeeklyPlan();
+    state = MealPlanState(plan: plan, weekKey: state.weekKey);
+    await _save();
   }
 }
 
