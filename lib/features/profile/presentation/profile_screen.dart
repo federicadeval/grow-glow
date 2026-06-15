@@ -18,6 +18,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late double _weightKg;
   late double _heightCm;
   late FitnessGoal _goal;
+  late DietStyle _dietStyle;
+  late List<String> _intolerances;
+  late TextEditingController _foodsToAvoidCtrl;
 
   bool _initialized = false;
 
@@ -27,7 +30,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightKg = p.weightKg;
     _heightCm = p.heightCm;
     _goal = p.goal;
+    _dietStyle = p.dietStyle;
+    _intolerances = List.from(p.intolerances);
+    _foodsToAvoidCtrl = TextEditingController(text: p.foodsToAvoid);
     _initialized = true;
+  }
+
+  @override
+  void dispose() {
+    if (_initialized) _foodsToAvoidCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,6 +56,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       weightKg: _weightKg,
       heightCm: _heightCm,
       goal: _goal,
+      dietStyle: _dietStyle,
+      intolerances: _intolerances,
+      foodsToAvoid: _foodsToAvoidCtrl.text,
     );
 
     return Scaffold(
@@ -141,6 +156,81 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
               // Macro breakdown
               _MacroCard(profile: preview),
+              const SizedBox(height: 24),
+
+              _SectionTitle('Preferenze alimentari'),
+              const SizedBox(height: 12),
+
+              _Label('Stile alimentare'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: DietStyle.values.map((d) => GestureDetector(
+                  onTap: () => setState(() => _dietStyle = d),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _dietStyle == d ? AppColors.mintDark : AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _dietStyle == d ? AppColors.mintDark : AppColors.divider),
+                    ),
+                    child: Text('${d.emoji} ${d.label}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: _dietStyle == d ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                )).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              _Label('Intolleranze / allergie'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: kAllIntolerances.map((intol) {
+                  final selected = _intolerances.contains(intol);
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      if (selected) _intolerances.remove(intol);
+                      else _intolerances.add(intol);
+                    }),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.peach : AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: selected ? AppColors.peachDark : AppColors.divider),
+                      ),
+                      child: Text(intol,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selected ? AppColors.peachDark : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              _Label('Altro da evitare'),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _foodsToAvoidCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Es. coriandolo, melanzane, cipolle crude…',
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: 2,
+              ),
               const SizedBox(height: 32),
 
               SizedBox(
@@ -168,6 +258,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       weightKg: _weightKg,
       heightCm: _heightCm,
       goal: _goal,
+      dietStyle: _dietStyle,
+      intolerances: List.from(_intolerances),
+      foodsToAvoid: _foodsToAvoidCtrl.text.trim(),
     );
     await ref.read(profileProvider.notifier).save(profile);
     if (mounted) {

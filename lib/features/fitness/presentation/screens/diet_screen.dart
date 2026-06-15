@@ -1,308 +1,383 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../features/profile/data/profile_provider.dart';
+import '../../data/calorie_provider.dart';
+import '../../data/meal_plan_provider.dart';
+import '../../domain/models/meal_plan_model.dart';
 
-class DietScreen extends StatefulWidget {
+class DietScreen extends ConsumerStatefulWidget {
   const DietScreen({super.key});
 
   @override
-  State<DietScreen> createState() => _DietScreenState();
+  ConsumerState<DietScreen> createState() => _DietScreenState();
 }
 
-class _DietScreenState extends State<DietScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _DietScreenState extends ConsumerState<DietScreen> {
+  int _selectedDay = DateTime.now().weekday - 1; // 0=Mon … 6=Sun
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  static const _dayLabels = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+  static const _dayNames = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  bool get _isToday => _selectedDay == DateTime.now().weekday - 1;
 
   @override
   Widget build(BuildContext context) {
+    final planState = ref.watch(mealPlanProvider);
+    final dayMeals = planState.plan.day(_selectedDay);
+    final profile = ref.watch(profileProvider);
+    final calories = ref.watch(calorieProvider);
+    final targetKcal = profile?.suggestedKcal ?? 2000;
+
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Dieta 🥗'),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.mintDark,
-          labelColor: AppColors.mintDark,
-          unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Oggi'),
-            Tab(text: 'Piano'),
-          ],
-        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: AppColors.mintDark,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Aggiungi pasto'),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _TodayTab(),
-          _PlanTab(),
-        ],
-      ),
-    );
-  }
-}
-
-class _TodayTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _MacroSummaryCard(),
-          const SizedBox(height: 24),
-          Text('Pasti di oggi',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          _MealCard(
-            meal: 'Colazione',
-            time: '08:00',
-            items: ['Yogurt greco', 'Frutti di bosco', 'Granola'],
-            calories: 320,
-            emoji: '🌅',
-          ),
-          _MealCard(
-            meal: 'Pranzo',
-            time: '13:00',
-            items: ['Riso integrale', 'Petto di pollo', 'Verdure'],
-            calories: 580,
-            emoji: '☀️',
-          ),
-          _MealCard(
-            meal: 'Cena',
-            time: '20:00',
-            items: [],
-            calories: 0,
-            emoji: '🌙',
-            isEmpty: true,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MacroSummaryCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.mint, AppColors.sky],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Calorie oggi',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.mintDark,
-                ),
-              ),
-              Text('900 / 1800 kcal',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.mintDark,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: 900 / 1800,
-              backgroundColor: Colors.white.withValues(alpha: 0.5),
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.mintDark),
-              minHeight: 10,
+          // Kcal summary strip
+          Container(
+            color: AppColors.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _KcalPill('🎯', 'Obiettivo', '$targetKcal'),
+                _KcalPill('🍽️', 'Consumate', '${calories.consumedKcal}'),
+                _KcalPill('🏋️', 'Bruciate', '${calories.burnedKcal}'),
+                _KcalPill('✅', 'Rimanenti',
+                  '${(targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _MacroItem(label: 'Proteine', value: '65g', target: '120g'),
-              _MacroItem(label: 'Carboidrati', value: '110g', target: '200g'),
-              _MacroItem(label: 'Grassi', value: '30g', target: '60g'),
-            ],
+
+          // Day selector
+          Container(
+            color: AppColors.surface,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Row(
+              children: List.generate(7, (i) {
+                final isSelected = i == _selectedDay;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedDay = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.mintDark : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            _dayLabels[i],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // Day label
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _dayNames[_selectedDay],
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                ),
+                if (dayMeals.totalKcal > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.mint,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${dayMeals.totalKcal} kcal totali',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Meal cards
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: MealType.values.map((type) {
+                final meal = dayMeals.getByType(type);
+                return _MealCard(
+                  type: type,
+                  meal: meal,
+                  isToday: _isToday,
+                  onEdit: () => _openEditDialog(type, meal),
+                  onClear: meal.isEmpty ? null : () => ref.read(mealPlanProvider.notifier).clearMeal(_selectedDay, type),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
     );
   }
+
+  void _openEditDialog(MealType type, MealEntry current) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MealEditSheet(
+        type: type,
+        current: current,
+        onSave: (entry) {
+          ref.read(mealPlanProvider.notifier).setMeal(_selectedDay, type, entry);
+          if (_isToday && !current.isEmpty) {
+            ref.read(calorieProvider.notifier).removeConsumed(current.kcal);
+          }
+          if (_isToday && !entry.isEmpty) {
+            ref.read(calorieProvider.notifier).addConsumed(entry.kcal);
+          }
+        },
+      ),
+    );
+  }
 }
 
-class _MacroItem extends StatelessWidget {
+class _KcalPill extends StatelessWidget {
+  final String emoji;
   final String label;
   final String value;
-  final String target;
-  const _MacroItem({
-    required this.label,
-    required this.value,
-    required this.target,
-  });
+  const _KcalPill(this.emoji, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mintDark,
-          ),
-        ),
-        Text('/ $target',
-          style: const TextStyle(fontSize: 11, color: AppColors.mintDark),
-        ),
-        Text(label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-        ),
+        Text('$emoji $value', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+        Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
       ],
     );
   }
 }
 
 class _MealCard extends StatelessWidget {
-  final String meal;
-  final String time;
-  final List<String> items;
-  final int calories;
-  final String emoji;
-  final bool isEmpty;
+  final MealType type;
+  final MealEntry meal;
+  final bool isToday;
+  final VoidCallback onEdit;
+  final VoidCallback? onClear;
 
   const _MealCard({
+    required this.type,
     required this.meal,
-    required this.time,
-    required this.items,
-    required this.calories,
-    required this.emoji,
-    this.isEmpty = false,
+    required this.isToday,
+    required this.onEdit,
+    this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isEmpty ? AppColors.mint.withValues(alpha: 0.3) : AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: isEmpty
-          ? Border.all(color: AppColors.mintDark.withValues(alpha: 0.3), style: BorderStyle.solid)
-          : null,
-        boxShadow: isEmpty ? null : [
-          BoxShadow(
-            color: AppColors.mint.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 28)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(meal,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(time,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
+    final isEmpty = meal.isEmpty;
+
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isEmpty ? AppColors.mint.withValues(alpha: 0.2) : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: isEmpty
+              ? Border.all(color: AppColors.mintDark.withValues(alpha: 0.25), style: BorderStyle.solid)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Text(type.emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(type.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      if (meal.isEatingOut) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFE0B2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('🍽️ fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  if (isEmpty)
+                    Text('Tocca per aggiungere', style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.7)))
+                  else ...[
+                    Text(meal.name, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    if (meal.notes.isNotEmpty)
+                      Text(meal.notes, style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withValues(alpha: 0.7))),
+                    const SizedBox(height: 4),
+                    Text('${meal.kcal} kcal',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark)),
                   ],
-                ),
-                if (isEmpty)
-                  Text('Aggiungi pasto',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.mintDark.withValues(alpha: 0.7),
-                    ),
-                  )
-                else ...[
-                  const SizedBox(height: 4),
-                  Text(items.join(' · '),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('$calories kcal',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mintDark,
-                    ),
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+            if (!isEmpty && onClear != null)
+              IconButton(
+                onPressed: onClear,
+                icon: const Icon(Icons.close_rounded, size: 18),
+                color: AppColors.textSecondary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PlanTab extends StatelessWidget {
+class _MealEditSheet extends StatefulWidget {
+  final MealType type;
+  final MealEntry current;
+  final void Function(MealEntry) onSave;
+
+  const _MealEditSheet({required this.type, required this.current, required this.onSave});
+
+  @override
+  State<_MealEditSheet> createState() => _MealEditSheetState();
+}
+
+class _MealEditSheetState extends State<_MealEditSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _kcalCtrl;
+  late final TextEditingController _notesCtrl;
+  late bool _isEatingOut;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.current.name);
+    _kcalCtrl = TextEditingController(text: widget.current.kcal > 0 ? '${widget.current.kcal}' : '');
+    _notesCtrl = TextEditingController(text: widget.current.notes);
+    _isEatingOut = widget.current.isEatingOut;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _kcalCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) return;
+    final kcal = int.tryParse(_kcalCtrl.text) ?? 0;
+    widget.onSave(MealEntry(
+      name: name,
+      kcal: kcal,
+      notes: _notesCtrl.text.trim(),
+      isEatingOut: _isEatingOut,
+    ));
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + bottom),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🥗', style: const TextStyle(fontSize: 48)),
+          Row(
+            children: [
+              Text(widget.type.emoji, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 8),
+              Text(widget.type.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _nameCtrl,
+            decoration: const InputDecoration(labelText: 'Cosa mangi?', hintText: 'Es. Pasta al pomodoro'),
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _kcalCtrl,
+            decoration: const InputDecoration(labelText: 'Kcal (opzionale)', suffixText: 'kcal'),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesCtrl,
+            decoration: const InputDecoration(labelText: 'Note (opzionale)', hintText: 'Es. senza sale, con olio EVO'),
+            textCapitalization: TextCapitalization.sentences,
+          ),
           const SizedBox(height: 16),
-          Text('Piano alimentare',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text('Crea il tuo piano settimanale',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mintDark,
+          GestureDetector(
+            onTap: () => setState(() => _isEatingOut = !_isEatingOut),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: _isEatingOut ? const Color(0xFFFFE0B2) : AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isEatingOut ? const Color(0xFFE65100) : AppColors.divider,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Text('🍽️', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 12),
+                  const Expanded(child: Text('Mangio fuori', style: TextStyle(fontWeight: FontWeight.w600))),
+                  Icon(
+                    _isEatingOut ? Icons.check_circle_rounded : Icons.circle_outlined,
+                    color: _isEatingOut ? const Color(0xFFE65100) : AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Crea piano'),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _save,
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+              child: const Text('Salva'),
+            ),
           ),
         ],
       ),

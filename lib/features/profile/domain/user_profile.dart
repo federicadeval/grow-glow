@@ -2,6 +2,8 @@ enum Gender { female, male }
 
 enum FitnessGoal { weightLoss, maintenance, muscleMass }
 
+enum DietStyle { onnivora, vegetariana, vegana, altro }
+
 extension FitnessGoalLabel on FitnessGoal {
   String get label {
     switch (this) {
@@ -20,6 +22,28 @@ extension FitnessGoalLabel on FitnessGoal {
   }
 }
 
+extension DietStyleLabel on DietStyle {
+  String get label {
+    switch (this) {
+      case DietStyle.onnivora: return 'Onnivora';
+      case DietStyle.vegetariana: return 'Vegetariana';
+      case DietStyle.vegana: return 'Vegana';
+      case DietStyle.altro: return 'Altro';
+    }
+  }
+
+  String get emoji {
+    switch (this) {
+      case DietStyle.onnivora: return '🍗';
+      case DietStyle.vegetariana: return '🥦';
+      case DietStyle.vegana: return '🌱';
+      case DietStyle.altro: return '🍽️';
+    }
+  }
+}
+
+const kAllIntolerances = ['Lattosio', 'Glutine', 'Frutta secca', 'Uova', 'Pesce', 'Crostacei', 'Soia'];
+
 class UserProfile {
   final String? name;
   final int age;
@@ -27,6 +51,9 @@ class UserProfile {
   final double weightKg;
   final double heightCm;
   final FitnessGoal goal;
+  final DietStyle dietStyle;
+  final List<String> intolerances;
+  final String foodsToAvoid;
 
   const UserProfile({
     this.name,
@@ -35,6 +62,9 @@ class UserProfile {
     required this.weightKg,
     required this.heightCm,
     required this.goal,
+    this.dietStyle = DietStyle.onnivora,
+    this.intolerances = const [],
+    this.foodsToAvoid = '',
   });
 
   // Mifflin-St Jeor
@@ -46,7 +76,6 @@ class UserProfile {
     }
   }
 
-  // Lightly active (home gym 3×/week)
   double get tdee => bmr * 1.375;
 
   int get suggestedKcal {
@@ -57,7 +86,6 @@ class UserProfile {
     }
   }
 
-  // Macro split suggerito
   int get proteinG {
     switch (goal) {
       case FitnessGoal.weightLoss: return (weightKg * 2.0).round();
@@ -76,6 +104,9 @@ class UserProfile {
     double? weightKg,
     double? heightCm,
     FitnessGoal? goal,
+    DietStyle? dietStyle,
+    List<String>? intolerances,
+    String? foodsToAvoid,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -84,6 +115,9 @@ class UserProfile {
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
       goal: goal ?? this.goal,
+      dietStyle: dietStyle ?? this.dietStyle,
+      intolerances: intolerances ?? this.intolerances,
+      foodsToAvoid: foodsToAvoid ?? this.foodsToAvoid,
     );
   }
 
@@ -94,6 +128,9 @@ class UserProfile {
     'weightKg': weightKg,
     'heightCm': heightCm,
     'goal': goal.index,
+    'dietStyle': dietStyle.index,
+    'intolerances': intolerances,
+    'foodsToAvoid': foodsToAvoid,
   };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
@@ -103,6 +140,9 @@ class UserProfile {
     weightKg: (json['weightKg'] as num).toDouble(),
     heightCm: (json['heightCm'] as num).toDouble(),
     goal: FitnessGoal.values[json['goal'] as int],
+    dietStyle: DietStyle.values[json['dietStyle'] as int? ?? 0],
+    intolerances: (json['intolerances'] as List<dynamic>?)?.cast<String>() ?? [],
+    foodsToAvoid: json['foodsToAvoid'] as String? ?? '',
   );
 
   static UserProfile get defaultProfile => const UserProfile(
