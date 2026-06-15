@@ -342,7 +342,8 @@ class _StreakBanner extends StatelessWidget {
         children: [
           const Text('🔥', style: TextStyle(fontSize: 40)),
           const SizedBox(width: 16),
-          Column(
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('La tua routine ✨',
@@ -356,6 +357,7 @@ class _StreakBanner extends StatelessWidget {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),
