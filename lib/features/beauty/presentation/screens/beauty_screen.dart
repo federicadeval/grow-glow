@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'routine_detail_screen.dart';
 import 'skin_questionnaire_screen.dart';
 import 'skin_photos_screen.dart';
+
+// ─── Helpers ─────────────────────────────────────────────────
+String dateStr(DateTime d) =>
+    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+String _monthLabel(DateTime d) {
+  const months = [
+    '', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre',
+  ];
+  return '${months[d.month]} ${d.year}';
+}
 
 // ─── Modello routine ──────────────────────────────────────────
 class RoutineStep {
@@ -17,7 +30,6 @@ class RoutineStep {
   });
 }
 
-// ID routine per ogni combinazione giorno/momento
 enum RoutineId {
   morningStandard,
   morningSaturday,
@@ -49,16 +61,11 @@ extension RoutineIdData on RoutineId {
 
   List<RoutineStep> get steps {
     switch (this) {
-      case RoutineId.morningStandard:
-        return _morningStandard;
-      case RoutineId.morningSaturday:
-        return _morningSaturday;
-      case RoutineId.eveningRetinal:
-        return _eveningRetinal;
-      case RoutineId.eveningBuenosAires:
-        return _eveningBuenosAires;
-      case RoutineId.eveningSunday:
-        return _eveningSunday;
+      case RoutineId.morningStandard: return _morningStandard;
+      case RoutineId.morningSaturday: return _morningSaturday;
+      case RoutineId.eveningRetinal: return _eveningRetinal;
+      case RoutineId.eveningBuenosAires: return _eveningBuenosAires;
+      case RoutineId.eveningSunday: return _eveningSunday;
     }
   }
 }
@@ -126,6 +133,21 @@ String shortDayLabel(int weekday) {
   return labels[weekday];
 }
 
+// ─── Completion model ─────────────────────────────────────────
+class _DayCompletion {
+  final bool morningDone;
+  final bool eveningDone;
+  final bool morningStarted;
+  final bool eveningStarted;
+
+  const _DayCompletion({
+    required this.morningDone,
+    required this.eveningDone,
+    required this.morningStarted,
+    required this.eveningStarted,
+  });
+}
+
 // ─── BeautyScreen ─────────────────────────────────────────────
 class BeautyScreen extends StatefulWidget {
   const BeautyScreen({super.key});
@@ -135,28 +157,65 @@ class BeautyScreen extends StatefulWidget {
 }
 
 class _BeautyScreenState extends State<BeautyScreen> {
-  late int _selectedWeekday;
+  late DateTime _today;
+  late DateTime _selectedDate;
+  Map<String, _DayCompletion> _completionCache = {};
 
   @override
   void initState() {
     super.initState();
-    _selectedWeekday = DateTime.now().weekday; // 1=Mon..7=Sun
+    _today = DateTime.now();
+    _selectedDate = _today;
+    _loadCompletionCache();
+  }
+
+  Future<void> _loadCompletionCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final year = _today.year;
+    final month = _today.month;
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+
+    final Map<String, _DayCompletion> cache = {};
+    for (int day = 1; day <= daysInMonth; day++) {
+      final date = DateTime(year, month, day);
+      final ds = dateStr(date);
+      final weekday = date.weekday;
+
+      final morningId = morningRoutineFor(weekday);
+      final eveningId = eveningRoutineFor(weekday);
+
+      final morningData = prefs.getString('routine_completion_${morningId.urlSegment}_$ds');
+      final eveningData = prefs.getString('routine_completion_${eveningId.urlSegment}_$ds');
+
+      cache[ds] = _DayCompletion(
+        morningDone: morningData != null && morningData.isNotEmpty && !morningData.contains('0'),
+        eveningDone: eveningData != null && eveningData.isNotEmpty && !eveningData.contains('0'),
+        morningStarted: morningData != null && morningData.contains('1'),
+        eveningStarted: eveningData != null && eveningData.contains('1'),
+      );
+    }
+
+    if (mounted) setState(() => _completionCache = cache);
   }
 
   void _openRoutine(RoutineId id) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RoutineDetailScreen(routineId: id.urlSegment),
+        builder: (_) => RoutineDetailScreen(
+          routineId: id.urlSegment,
+          date: _selectedDate,
+        ),
       ),
-    );
+    ).then((_) => _loadCompletionCache());
   }
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now().weekday;
-    final morningId = morningRoutineFor(_selectedWeekday);
-    final eveningId = eveningRoutineFor(_selectedWeekday);
+    final morningId = morningRoutineFor(_selectedDate.weekday);
+    final eveningId = eveningRoutineFor(_selectedDate.weekday);
+    final ds = dateStr(_selectedDate);
+    final isToday = ds == dateStr(_today);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Beauty ✨')),
@@ -168,25 +227,30 @@ class _BeautyScreenState extends State<BeautyScreen> {
             _StreakBanner(),
             const SizedBox(height: 24),
 
-            // Selezione giorno
-            Text('Seleziona giorno',
+            Text(_monthLabel(_today),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            _DaySelector(
-              selectedWeekday: _selectedWeekday,
-              today: today,
-              onSelect: (d) => setState(() => _selectedWeekday = d),
+            _CalendarStrip(
+              selectedDate: _selectedDate,
+              today: _today,
+              completionCache: _completionCache,
+              onSelect: (d) => setState(() => _selectedDate = d),
             ),
             const SizedBox(height: 24),
 
-            // Routine del giorno selezionato
             Row(
               children: [
-                Text(dayLabel(_selectedWeekday),
+                Text(dayLabel(_selectedDate.weekday),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                if (_selectedWeekday == today) ...[
+                const SizedBox(width: 6),
+                Text('${_selectedDate.day}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.beautyDark,
+                  ),
+                ),
+                if (isToday) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -206,23 +270,24 @@ class _BeautyScreenState extends State<BeautyScreen> {
             _RoutineCard(
               timeLabel: 'Mattina ☀️',
               steps: morningId.steps.length,
-              specialNote: _selectedWeekday == 6 ? 'Bahia Blanca' : null,
+              specialNote: _selectedDate.weekday == 6 ? 'Bahia Blanca' : null,
+              isDone: _completionCache[ds]?.morningDone ?? false,
               onTap: () => _openRoutine(morningId),
             ),
             const SizedBox(height: 10),
             _RoutineCard(
               timeLabel: 'Sera 🌙',
               steps: eveningId.steps.length,
-              specialNote: _selectedWeekday == 7
+              specialNote: _selectedDate.weekday == 7
                   ? 'Bogotà'
-                  : _selectedWeekday == 3
+                  : _selectedDate.weekday == 3
                       ? 'Buenos Aires (no Retinal)'
                       : 'Retinal',
+              isDone: _completionCache[ds]?.eveningDone ?? false,
               onTap: () => _openRoutine(eveningId),
             ),
             const SizedBox(height: 28),
 
-            // Monitora progressi
             Text('Monitora i progressi',
               style: Theme.of(context).textTheme.titleLarge,
             ),
@@ -298,62 +363,170 @@ class _StreakBanner extends StatelessWidget {
   }
 }
 
-class _DaySelector extends StatelessWidget {
-  final int selectedWeekday;
-  final int today;
-  final ValueChanged<int> onSelect;
+class _CalendarStrip extends StatefulWidget {
+  final DateTime selectedDate;
+  final DateTime today;
+  final Map<String, _DayCompletion> completionCache;
+  final ValueChanged<DateTime> onSelect;
 
-  const _DaySelector({
-    required this.selectedWeekday,
+  const _CalendarStrip({
+    required this.selectedDate,
     required this.today,
+    required this.completionCache,
     required this.onSelect,
   });
 
   @override
+  State<_CalendarStrip> createState() => _CalendarStripState();
+}
+
+class _CalendarStripState extends State<_CalendarStrip> {
+  final _scrollController = ScrollController();
+  static const double _itemWidth = 50.0;
+  static const double _itemGap = 8.0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToDay(widget.selectedDate.day));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToDay(int day) {
+    if (!_scrollController.hasClients) return;
+    final offset = (day - 1) * (_itemWidth + _itemGap) -
+        MediaQuery.of(context).size.width / 2 +
+        _itemWidth / 2 +
+        20; // compensate page padding
+    _scrollController.jumpTo(
+      offset.clamp(0.0, _scrollController.position.maxScrollExtent),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(7, (i) {
-        final day = i + 1; // 1=Mon..7=Sun (but Sun = 7)
-        final isToday = day == today;
-        final isSelected = day == selectedWeekday;
-        return GestureDetector(
-          onTap: () => onSelect(day),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 40,
-            height: 56,
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.beautyDark : isToday ? AppColors.beauty : AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: isToday && !isSelected
-                  ? Border.all(color: AppColors.beautyDark, width: 1.5)
-                  : null,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(shortDayLabel(day),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+    final year = widget.today.year;
+    final month = widget.today.month;
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final todayMidnight = DateTime(widget.today.year, widget.today.month, widget.today.day);
+
+    return SizedBox(
+      height: 76,
+      child: ListView.builder(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        itemCount: daysInMonth,
+        itemBuilder: (context, i) {
+          final date = DateTime(year, month, i + 1);
+          final ds = dateStr(date);
+          final isToday = date.day == widget.today.day;
+          final isSelected = date.day == widget.selectedDate.day;
+          final isFuture = date.isAfter(todayMidnight);
+          final completion = widget.completionCache[ds];
+
+          return GestureDetector(
+            onTap: () => widget.onSelect(date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: _itemWidth,
+              margin: const EdgeInsets.only(right: _itemGap),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.beautyDark
+                    : isToday
+                        ? AppColors.beauty
+                        : AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: isToday && !isSelected
+                    ? Border.all(color: AppColors.beautyDark, width: 1.5)
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(shortDayLabel(date.weekday),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                if (day == 6)
-                  Text('🌟', style: const TextStyle(fontSize: 14))
-                else if (day == 7)
-                  Text('🌿', style: const TextStyle(fontSize: 14))
-                else if (day == 3)
-                  Text('🧪', style: const TextStyle(fontSize: 14))
-                else
-                  Text('🌙', style: const TextStyle(fontSize: 14)),
-              ],
+                  const SizedBox(height: 2),
+                  Text('${date.day}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? Colors.white
+                          : isFuture
+                              ? AppColors.textSecondary.withValues(alpha: 0.35)
+                              : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (!isFuture)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _CompletionDot(
+                          done: completion?.morningDone ?? false,
+                          started: completion?.morningStarted ?? false,
+                          isSelected: isSelected,
+                        ),
+                        const SizedBox(width: 3),
+                        _CompletionDot(
+                          done: completion?.eveningDone ?? false,
+                          started: completion?.eveningStarted ?? false,
+                          isSelected: isSelected,
+                        ),
+                      ],
+                    )
+                  else
+                    const SizedBox(height: 8),
+                ],
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CompletionDot extends StatelessWidget {
+  final bool done;
+  final bool started;
+  final bool isSelected;
+
+  const _CompletionDot({
+    required this.done,
+    required this.started,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color;
+    if (done) {
+      color = isSelected ? Colors.white : AppColors.beautyDark;
+    } else if (started) {
+      color = isSelected
+          ? Colors.white.withValues(alpha: 0.6)
+          : AppColors.beautyDark.withValues(alpha: 0.45);
+    } else {
+      color = isSelected
+          ? Colors.white.withValues(alpha: 0.3)
+          : AppColors.beauty.withValues(alpha: 0.7);
+    }
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
@@ -362,12 +535,14 @@ class _RoutineCard extends StatelessWidget {
   final String timeLabel;
   final int steps;
   final String? specialNote;
+  final bool isDone;
   final VoidCallback onTap;
 
   const _RoutineCard({
     required this.timeLabel,
     required this.steps,
     required this.onTap,
+    required this.isDone,
     this.specialNote,
   });
 
@@ -420,6 +595,23 @@ class _RoutineCard extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.beautyDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (isDone) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.beautyDark,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('Fatto ✓',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
                         ),

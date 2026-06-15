@@ -5,7 +5,8 @@ import 'beauty_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
   final String routineId;
-  const RoutineDetailScreen({super.key, required this.routineId});
+  final DateTime? date;
+  const RoutineDetailScreen({super.key, required this.routineId, this.date});
 
   @override
   State<RoutineDetailScreen> createState() => _RoutineDetailScreenState();
@@ -32,11 +33,8 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
 
   bool get _allDone => _completed.isNotEmpty && _completed.every((c) => c);
 
-  String get _prefsKey {
-    final d = DateTime.now();
-    final date = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-    return 'routine_completion_${widget.routineId}_$date';
-  }
+  String get _prefsKey =>
+      'routine_completion_${widget.routineId}_${dateStr(widget.date ?? DateTime.now())}';
 
   @override
   void initState() {
