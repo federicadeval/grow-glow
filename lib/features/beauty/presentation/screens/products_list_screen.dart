@@ -98,9 +98,22 @@ class _ProductCard extends StatelessWidget {
                 color: product.category.bgColor,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Center(
-                child: Text(product.emoji, style: const TextStyle(fontSize: 24)),
-              ),
+              child: product.imageUrl != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.network(
+                        product.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Center(child: Text(product.emoji, style: const TextStyle(fontSize: 24))),
+                        loadingBuilder: (_, child, progress) => progress == null
+                            ? child
+                            : Center(child: Text(product.emoji, style: const TextStyle(fontSize: 24))),
+                      ),
+                    )
+                  : Center(
+                      child: Text(product.emoji, style: const TextStyle(fontSize: 24)),
+                    ),
             ),
             const SizedBox(width: 14),
             Expanded(

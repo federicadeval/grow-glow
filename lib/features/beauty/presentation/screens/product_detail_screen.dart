@@ -106,7 +106,7 @@ class _ProductAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: product.imageUrl != null ? 280 : 200,
       pinned: true,
       backgroundColor: product.category.bgColor,
       foregroundColor: product.category.fgColor,
@@ -124,11 +124,23 @@ class _ProductAppBar extends StatelessWidget {
           ),
           child: SafeArea(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                Text(product.emoji, style: const TextStyle(fontSize: 56)),
-                const SizedBox(height: 8),
+                Expanded(
+                  child: Center(
+                    child: product.imageUrl != null
+                        ? Image.network(
+                            product.imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) =>
+                                Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                            loadingBuilder: (_, child, progress) => progress == null
+                                ? child
+                                : Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                          )
+                        : Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                  ),
+                ),
                 if (product.brand.isNotEmpty)
                   Text(product.brand,
                     style: TextStyle(
@@ -149,6 +161,7 @@ class _ProductAppBar extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
               ],
             ),
           ),

@@ -73,6 +73,7 @@ class Product {
   final String emoji;
   final ProductTiming timing;
   final String? warnings;
+  final String? imageUrl;
 
   const Product({
     required this.id,
@@ -86,5 +87,6 @@ class Product {
     required this.emoji,
     required this.timing,
     this.warnings,
+    this.imageUrl,
   });
 }

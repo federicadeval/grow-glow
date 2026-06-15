@@ -15,6 +15,7 @@ const kProducts = <String, Product>{
     keyIngredients: ['Ceramidi (1, 3, 6-II)', 'Acido ialuronico', 'Niacinamide', 'Tecnologia MVE'],
     emoji: '🫧',
     timing: ProductTiming.both,
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2018254?\$promoMedFace\$',
   ),
 
   'cerave_foaming': Product(
@@ -30,6 +31,7 @@ const kProducts = <String, Product>{
     keyIngredients: ['Ceramidi (1, 3, 6-II)', 'Niacinamide', 'Acido ialuronico', 'PCA idrometile'],
     emoji: '🧹',
     timing: ProductTiming.evening,
+    imageUrl: 'https://media.ulta.com/i/ulta/xlsImpprod5140065?\$promoMedFace\$',
   ),
 
   'micellare': Product(
@@ -62,6 +64,7 @@ const kProducts = <String, Product>{
     emoji: '🌿',
     timing: ProductTiming.morning,
     warnings: 'Può causare un lieve pizzicore iniziale — normale. Conservare in luogo fresco e al riparo dalla luce. Non applicare su pelle irritata. Usa SPF obbligatoriamente dopo.',
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2034716?\$promoMedFace\$',
   ),
 
   'acido_ialuronico': Product(
@@ -100,6 +103,7 @@ const kProducts = <String, Product>{
     ],
     emoji: '✨',
     timing: ProductTiming.both,
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2001763?\$promoMedFace\$',
   ),
 
   // ─── Idratanti ────────────────────────────────────────────────
@@ -122,6 +126,7 @@ const kProducts = <String, Product>{
     ],
     emoji: '💜',
     timing: ProductTiming.both,
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2048816?\$promoMedFace\$',
   ),
 
   // ─── SPF ──────────────────────────────────────────────────────
@@ -199,6 +204,7 @@ const kProducts = <String, Product>{
     timing: ProductTiming.evening,
     warnings:
         'Non usare nella stessa sera degli acidi esfolianti (Buenos Aires). Non usare in gravidanza o allattamento. SPF 50+ il mattino OBBLIGATORIO. Possibile skin purging iniziale (arrossamento, desquamazione) — è normale e temporaneo.',
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2049602?\$promoMedFace\$',
   ),
 
   // ─── Trattamenti ──────────────────────────────────────────────
