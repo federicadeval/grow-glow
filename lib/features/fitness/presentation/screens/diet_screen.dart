@@ -5,6 +5,7 @@ import '../../../../features/profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
 import '../../data/meal_plan_provider.dart';
 import '../../domain/models/meal_plan_model.dart';
+import '../../domain/food_database.dart';
 
 class DietScreen extends ConsumerStatefulWidget {
   const DietScreen({super.key});
@@ -276,7 +277,7 @@ class _MealCard extends StatelessWidget {
                     if (meal.notes.isNotEmpty)
                       Text(meal.notes, style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withValues(alpha: 0.7))),
                     const SizedBox(height: 4),
-                    Text('${meal.kcal} kcal',
+                    Text('${meal.effectiveKcal} kcal',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark)),
                   ],
                 ],
@@ -308,19 +309,26 @@ class _MealEditSheet extends StatefulWidget {
   State<_MealEditSheet> createState() => _MealEditSheetState();
 }
 
-class _MealEditSheetState extends State<_MealEditSheet> {
+class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProviderStateMixin {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _kcalCtrl;
   late final TextEditingController _notesCtrl;
+  late final TextEditingController _searchCtrl;
   late bool _isEatingOut;
+  late List<Ingredient> _ingredients;
+  late TabController _tabCtrl;
+  List<FoodItem> _searchResults = [];
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.current.name);
-    _kcalCtrl = TextEditingController(text: widget.current.kcal > 0 ? '${widget.current.kcal}' : '');
+    _kcalCtrl = TextEditingController(text: widget.current.kcal > 0 && widget.current.ingredients.isEmpty ? '${widget.current.kcal}' : '');
     _notesCtrl = TextEditingController(text: widget.current.notes);
+    _searchCtrl = TextEditingController();
     _isEatingOut = widget.current.isEatingOut;
+    _ingredients = List.from(widget.current.ingredients);
+    _tabCtrl = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -328,93 +336,291 @@ class _MealEditSheetState extends State<_MealEditSheet> {
     _nameCtrl.dispose();
     _kcalCtrl.dispose();
     _notesCtrl.dispose();
+    _searchCtrl.dispose();
+    _tabCtrl.dispose();
     super.dispose();
+  }
+
+  int get _computedKcal {
+    if (_ingredients.isNotEmpty) return _ingredients.fold(0, (s, i) => s + i.kcal);
+    return int.tryParse(_kcalCtrl.text) ?? 0;
   }
 
   void _save() {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
-    final kcal = int.tryParse(_kcalCtrl.text) ?? 0;
     widget.onSave(MealEntry(
       name: name,
-      kcal: kcal,
+      kcal: _ingredients.isEmpty ? (int.tryParse(_kcalCtrl.text) ?? 0) : 0,
       notes: _notesCtrl.text.trim(),
       isEatingOut: _isEatingOut,
+      ingredients: List.from(_ingredients),
     ));
     Navigator.pop(context);
+  }
+
+  void _addIngredient(FoodItem food) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final ctrl = TextEditingController(text: '100');
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(food.name, style: const TextStyle(fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${food.kcalPer100g.round()} kcal / 100g',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Grammi', suffixText: 'g'),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
+            ElevatedButton(
+              onPressed: () {
+                final g = double.tryParse(ctrl.text) ?? 100;
+                setState(() {
+                  _ingredients.add(Ingredient(name: food.name, grams: g, kcalPer100g: food.kcalPer100g));
+                  _searchCtrl.clear();
+                  _searchResults = [];
+                });
+                Navigator.pop(ctx);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+              child: const Text('Aggiungi'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + bottom),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(widget.type.emoji, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 8),
-              Text(widget.type.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            ],
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40, height: 4,
+            decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
           ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _nameCtrl,
-            decoration: const InputDecoration(labelText: 'Cosa mangi?', hintText: 'Es. Pasta al pomodoro'),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _kcalCtrl,
-            decoration: const InputDecoration(labelText: 'Kcal (opzionale)', suffixText: 'kcal'),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _notesCtrl,
-            decoration: const InputDecoration(labelText: 'Note (opzionale)', hintText: 'Es. senza sale, con olio EVO'),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () => setState(() => _isEatingOut = !_isEatingOut),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: _isEatingOut ? const Color(0xFFFFE0B2) : AppColors.background,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _isEatingOut ? const Color(0xFFE65100) : AppColors.divider,
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+            child: Row(
+              children: [
+                Text(widget.type.emoji, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 8),
+                Text(widget.type.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(12)),
+                  child: Text('$_computedKcal kcal',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.mintDark, fontSize: 14)),
                 ),
-              ),
-              child: Row(
-                children: [
-                  const Text('🍽️', style: TextStyle(fontSize: 20)),
-                  const SizedBox(width: 12),
-                  const Expanded(child: Text('Mangio fuori', style: TextStyle(fontWeight: FontWeight.w600))),
-                  Icon(
-                    _isEatingOut ? Icons.check_circle_rounded : Icons.circle_outlined,
-                    color: _isEatingOut ? const Color(0xFFE65100) : AppColors.textSecondary,
-                  ),
-                ],
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _save,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
-              child: const Text('Salva'),
+          // Tabs
+          TabBar(
+            controller: _tabCtrl,
+            indicatorColor: AppColors.mintDark,
+            labelColor: AppColors.mintDark,
+            unselectedLabelColor: AppColors.textSecondary,
+            tabs: const [Tab(text: 'Pasto'), Tab(text: 'Ingredienti')],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabCtrl,
+              children: [
+                // ── Tab 1: info pasto ──────────────────────────────
+                SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + bottom),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(labelText: 'Nome del pasto', hintText: 'Es. Pasta al pomodoro'),
+                        textCapitalization: TextCapitalization.sentences,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_ingredients.isEmpty)
+                        TextField(
+                          controller: _kcalCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Kcal manuali (se non usi ingredienti)',
+                            suffixText: 'kcal',
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _notesCtrl,
+                        decoration: const InputDecoration(labelText: 'Note', hintText: 'Es. senza sale, con olio EVO'),
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => setState(() => _isEatingOut = !_isEatingOut),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _isEatingOut ? const Color(0xFFFFE0B2) : AppColors.background,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: _isEatingOut ? const Color(0xFFE65100) : AppColors.divider),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('🍽️', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 12),
+                              const Expanded(child: Text('Mangio fuori', style: TextStyle(fontWeight: FontWeight.w600))),
+                              Icon(
+                                _isEatingOut ? Icons.check_circle_rounded : Icons.circle_outlined,
+                                color: _isEatingOut ? const Color(0xFFE65100) : AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _nameCtrl.text.trim().isEmpty ? null : _save,
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+                          child: const Text('Salva'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Tab 2: ingredienti ─────────────────────────────
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: TextField(
+                        controller: _searchCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Cerca alimento…',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: _searchCtrl.text.isNotEmpty
+                              ? IconButton(icon: const Icon(Icons.clear), onPressed: () {
+                                  setState(() { _searchCtrl.clear(); _searchResults = []; });
+                                })
+                              : null,
+                        ),
+                        onChanged: (q) => setState(() => _searchResults = searchFood(q)),
+                      ),
+                    ),
+                    if (_searchResults.isNotEmpty)
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          itemCount: _searchResults.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (_, i) {
+                            final food = _searchResults[i];
+                            return ListTile(
+                              dense: true,
+                              title: Text(food.name, style: const TextStyle(fontSize: 13)),
+                              subtitle: Text('${food.kcalPer100g.round()} kcal/100g · ${food.category}',
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                              trailing: const Icon(Icons.add_circle_outline, color: AppColors.mintDark),
+                              onTap: () => _addIngredient(food),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: _ingredients.isEmpty
+                          ? Center(
+                              child: Text('Cerca e aggiungi ingredienti\nper calcolare le kcal automaticamente',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _ingredients.length,
+                              itemBuilder: (_, i) {
+                                final ing = _ingredients[i];
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.mint.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(ing.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                            Text('${ing.grams.round()}g · ${ing.kcal} kcal',
+                                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close_rounded, size: 18),
+                                        color: AppColors.textSecondary,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () => setState(() => _ingredients.removeAt(i)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    if (_ingredients.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottom),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _nameCtrl.text.trim().isEmpty ? null : _save,
+                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+                            child: Text('Salva · $_computedKcal kcal'),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

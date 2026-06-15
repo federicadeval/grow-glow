@@ -1,5 +1,30 @@
 import 'dart:convert';
 
+// ─── Ingredient ──────────────────────────────────────────────────────────────
+
+class Ingredient {
+  final String name;
+  final double grams;
+  final double kcalPer100g;
+
+  const Ingredient({required this.name, required this.grams, required this.kcalPer100g});
+
+  int get kcal => (grams * kcalPer100g / 100).round();
+
+  Ingredient copyWith({double? grams}) =>
+      Ingredient(name: name, grams: grams ?? this.grams, kcalPer100g: kcalPer100g);
+
+  Map<String, dynamic> toJson() => {'name': name, 'grams': grams, 'kcalPer100g': kcalPer100g};
+
+  factory Ingredient.fromJson(Map<String, dynamic> j) => Ingredient(
+    name: j['name'] as String,
+    grams: (j['grams'] as num).toDouble(),
+    kcalPer100g: (j['kcalPer100g'] as num).toDouble(),
+  );
+}
+
+// ─── MealType ────────────────────────────────────────────────────────────────
+
 enum MealType { colazione, pranzo, cena, spuntino }
 
 extension MealTypeLabel on MealType {
@@ -24,25 +49,38 @@ extension MealTypeLabel on MealType {
 
 class MealEntry {
   final String name;
-  final int kcal;
+  final int kcal;          // manual kcal (used when ingredients list is empty)
   final String notes;
   final bool isEatingOut;
+  final List<Ingredient> ingredients;
 
   const MealEntry({
     required this.name,
     required this.kcal,
     this.notes = '',
     this.isEatingOut = false,
+    this.ingredients = const [],
   });
 
   bool get isEmpty => name.isEmpty;
 
-  MealEntry copyWith({String? name, int? kcal, String? notes, bool? isEatingOut}) {
+  /// Returns ingredients-based kcal if available, otherwise manual kcal.
+  int get effectiveKcal =>
+      ingredients.isNotEmpty ? ingredients.fold(0, (s, i) => s + i.kcal) : kcal;
+
+  MealEntry copyWith({
+    String? name,
+    int? kcal,
+    String? notes,
+    bool? isEatingOut,
+    List<Ingredient>? ingredients,
+  }) {
     return MealEntry(
       name: name ?? this.name,
       kcal: kcal ?? this.kcal,
       notes: notes ?? this.notes,
       isEatingOut: isEatingOut ?? this.isEatingOut,
+      ingredients: ingredients ?? this.ingredients,
     );
   }
 
@@ -51,6 +89,7 @@ class MealEntry {
     'kcal': kcal,
     'notes': notes,
     'isEatingOut': isEatingOut,
+    'ingredients': ingredients.map((i) => i.toJson()).toList(),
   };
 
   factory MealEntry.fromJson(Map<String, dynamic> j) => MealEntry(
@@ -58,6 +97,9 @@ class MealEntry {
     kcal: j['kcal'] as int? ?? 0,
     notes: j['notes'] as String? ?? '',
     isEatingOut: j['isEatingOut'] as bool? ?? false,
+    ingredients: (j['ingredients'] as List<dynamic>?)
+        ?.map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+        .toList() ?? [],
   );
 
   static const empty = MealEntry(name: '', kcal: 0);
