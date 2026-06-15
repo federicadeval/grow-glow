@@ -6,6 +6,7 @@ import '../../data/calorie_provider.dart';
 import '../../data/meal_plan_provider.dart';
 import '../../domain/models/meal_plan_model.dart';
 import '../../domain/food_database.dart';
+import '../../data/open_food_facts_service.dart';
 
 class DietScreen extends ConsumerStatefulWidget {
   const DietScreen({super.key});
@@ -434,6 +435,9 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
   late List<Ingredient> _ingredients;
   late TabController _tabCtrl;
   List<FoodItem> _searchResults = [];
+  final TextEditingController _barcodeCtrl = TextEditingController();
+  bool _barcodeLoading = false;
+  String? _barcodeError;
 
   @override
   void initState() {
@@ -444,7 +448,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
     _searchCtrl = TextEditingController();
     _isEatingOut = widget.current.isEatingOut;
     _ingredients = List.from(widget.current.ingredients);
-    _tabCtrl = TabController(length: 2, vsync: this);
+    _tabCtrl = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -453,6 +457,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
     _kcalCtrl.dispose();
     _notesCtrl.dispose();
     _searchCtrl.dispose();
+    _barcodeCtrl.dispose();
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -559,7 +564,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
             indicatorColor: AppColors.mintDark,
             labelColor: AppColors.mintDark,
             unselectedLabelColor: AppColors.textSecondary,
-            tabs: const [Tab(text: 'Pasto'), Tab(text: 'Ingredienti')],
+            tabs: const [Tab(text: 'Pasto'), Tab(text: 'Ingredienti'), Tab(text: 'Barcode')],
           ),
           Expanded(
             child: TabBarView(
@@ -736,6 +741,74 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
                       ),
                   ],
                 ),
+
+                // ── Tab 3: barcode ─────────────────────────────────
+                SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottom),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Inserisci il codice a barre del prodotto',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Trovi il barcode sulla confezione del prodotto. '
+                        'Cerca su Open Food Facts — database con milioni di prodotti.',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _barcodeCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Es. 8076809513388',
+                                prefixIcon: const Icon(Icons.barcode_reader),
+                                errorText: _barcodeError,
+                              ),
+                              onSubmitted: (_) => _lookupBarcode(),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: _barcodeLoading ? null : _lookupBarcode,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mintDark,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            ),
+                            child: _barcodeLoading
+                                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Icon(Icons.search_rounded, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Come trovare il barcode', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                            const SizedBox(height: 6),
+                            Text('• Le cifre sotto le barre verticali sulla confezione\n'
+                                 '• Di solito 8, 12 o 13 cifre\n'
+                                 '• Prodotti italiani iniziano spesso con 80',
+                                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.6)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -743,4 +816,97 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
       ),
     );
   }
+
+  Future<void> _lookupBarcode() async {
+    final code = _barcodeCtrl.text.trim();
+    if (code.isEmpty) return;
+    setState(() { _barcodeLoading = true; _barcodeError = null; });
+
+    final result = await OpenFoodFactsService.lookup(code);
+    if (!mounted) return;
+
+    if (result == null) {
+      setState(() { _barcodeLoading = false; _barcodeError = 'Prodotto non trovato. Prova con il codice completo.'; });
+      return;
+    }
+
+    // prefill name if empty
+    if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.displayName;
+
+    setState(() { _barcodeLoading = false; _barcodeError = null; });
+
+    // Ask for grams then add
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final gramsCtrl = TextEditingController(text: '100');
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(result.name, style: const TextStyle(fontSize: 15)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (result.brand.isNotEmpty)
+                Text(result.brand, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _InfoChip('🔥 ${result.kcalPer100g.round()} kcal'),
+                  _InfoChip('P ${result.proteinPer100g.round()}g'),
+                  _InfoChip('C ${result.carbsPer100g.round()}g'),
+                  _InfoChip('G ${result.fatPer100g.round()}g'),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text('per 100g', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: gramsCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Grammi da aggiungere', suffixText: 'g'),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
+            ElevatedButton(
+              onPressed: () {
+                final g = double.tryParse(gramsCtrl.text) ?? 100;
+                setState(() {
+                  _ingredients.add(Ingredient(
+                    name: result.displayName,
+                    grams: g,
+                    kcalPer100g: result.kcalPer100g,
+                    proteinPer100g: result.proteinPer100g,
+                    carbsPer100g: result.carbsPer100g,
+                    fatPer100g: result.fatPer100g,
+                  ));
+                  _barcodeCtrl.clear();
+                });
+                Navigator.pop(ctx);
+                _tabCtrl.animateTo(1); // go to ingredients tab
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+              child: const Text('Aggiungi'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String text;
+  const _InfoChip(this.text);
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+    decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(8)),
+    child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.mintDark)),
+  );
 }
