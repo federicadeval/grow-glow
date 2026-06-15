@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import 'routine_detail_screen.dart';
 import 'skin_questionnaire_screen.dart';
 import 'skin_photos_screen.dart';
+import 'products_list_screen.dart';
 
 // ─── Helpers ─────────────────────────────────────────────────
 String dateStr(DateTime d) =>
@@ -22,11 +23,13 @@ class RoutineStep {
   final String name;
   final String description;
   final String emoji;
+  final String? productId;
 
   const RoutineStep({
     required this.name,
     required this.description,
     required this.emoji,
+    this.productId,
   });
 }
 
@@ -72,43 +75,43 @@ extension RoutineIdData on RoutineId {
 
 // ─── Step lists ───────────────────────────────────────────────
 const _morningStandard = [
-  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', emoji: '🫧'),
-  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', emoji: '🌿'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', emoji: '✨'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', emoji: '💜'),
-  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', emoji: '☀️'),
+  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', emoji: '🫧', productId: 'cerave_cleanser'),
+  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', emoji: '🌿', productId: 'vitamina_c'),
+  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', emoji: '✨', productId: 'revitalift'),
+  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', emoji: '💜', productId: 'lancome'),
+  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', emoji: '☀️', productId: 'spf'),
 ];
 
 const _morningSaturday = [
-  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', emoji: '🫧'),
-  RoutineStep(name: 'Bahia Blanca', description: 'Peeling/scrub — applica sul viso asciutto, massaggia delicatamente, risciacqua.', emoji: '🌟'),
-  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', emoji: '🌿'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', emoji: '✨'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', emoji: '💜'),
-  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', emoji: '☀️'),
+  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', emoji: '🫧', productId: 'cerave_cleanser'),
+  RoutineStep(name: 'Bahia Blanca', description: 'Peeling/scrub — applica sul viso asciutto, massaggia delicatamente, risciacqua.', emoji: '🌟', productId: 'bahia_blanca'),
+  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', emoji: '🌿', productId: 'vitamina_c'),
+  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', emoji: '✨', productId: 'revitalift'),
+  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', emoji: '💜', productId: 'lancome'),
+  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', emoji: '☀️', productId: 'spf'),
 ];
 
 const _eveningRetinal = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', emoji: '💧'),
-  RoutineStep(name: 'Retinal', description: 'Retinaldeide — applica uno strato sottile su tutto il viso. Evita contorno occhi. Inizia 2-3 volte a settimana.', emoji: '🌙'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso per nutrire.', emoji: '✨'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', emoji: '💜'),
+  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹', productId: 'cerave_foaming'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', emoji: '💧', productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Retinal', description: 'Retinaldeide — applica uno strato sottile su tutto il viso. Evita contorno occhi. Inizia 2-3 volte a settimana.', emoji: '🌙', productId: 'retinal'),
+  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso per nutrire.', emoji: '✨', productId: 'revitalift'),
+  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', emoji: '💜', productId: 'lancome'),
 ];
 
 const _eveningBuenosAires = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹'),
-  RoutineStep(name: 'Buenos Aires', description: 'Acido esfoliante (BHA/AHA) — applica su viso asciutto. Non usare insieme al Retinal.', emoji: '🧪'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido.', emoji: '💧'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso.', emoji: '✨'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer.', emoji: '💜'),
+  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹', productId: 'cerave_foaming'),
+  RoutineStep(name: 'Buenos Aires', description: 'Acido esfoliante (BHA/AHA) — applica su viso asciutto. Non usare insieme al Retinal.', emoji: '🧪', productId: 'buenos_aires'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido.', emoji: '💧', productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso.', emoji: '✨', productId: 'revitalift'),
+  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer.', emoji: '💜', productId: 'lancome'),
 ];
 
 const _eveningSunday = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹'),
-  RoutineStep(name: 'Bogotà', description: 'Applica il prodotto sul viso come da indicazioni. Lascia agire il tempo necessario, poi risciacqua se richiesto.', emoji: '🌿'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', emoji: '💧'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', emoji: '💜'),
+  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', emoji: '🧹', productId: 'cerave_foaming'),
+  RoutineStep(name: 'Bogotà', description: 'Applica il prodotto sul viso come da indicazioni. Lascia agire il tempo necessario, poi risciacqua se richiesto.', emoji: '🌿', productId: 'bogota'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', emoji: '💧', productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', emoji: '💜', productId: 'lancome'),
 ];
 
 // ─── Mappa giorno → routine ───────────────────────────────────
@@ -285,6 +288,23 @@ class _BeautyScreenState extends State<BeautyScreen> {
                       : 'Retinal',
               isDone: _completionCache[ds]?.eveningDone ?? false,
               onTap: () => _openRoutine(eveningId),
+            ),
+            const SizedBox(height: 28),
+
+            Text('I miei prodotti',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            _ProgressCard(
+              emoji: '🧴',
+              title: 'Tutti i prodotti',
+              subtitle: 'Schede dettagliate di ogni prodotto nella tua routine',
+              color: AppColors.mintDark,
+              bgColor: AppColors.mint,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProductsListScreen()),
+              ),
             ),
             const SizedBox(height: 28),
 

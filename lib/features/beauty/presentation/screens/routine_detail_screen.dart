@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'beauty_screen.dart';
+import 'product_detail_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
   final String routineId;
@@ -91,6 +92,11 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                       setState(() => _completed[i] = !_completed[i]);
                       _saveCompleted();
                     },
+                    onInfo: _steps[i].productId != null ? () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => ProductDetailScreen(productId: _steps[i].productId!),
+                      ));
+                    } : null,
                   )),
                 ],
               ),
@@ -216,12 +222,14 @@ class _StepTile extends StatelessWidget {
   final int index;
   final bool isCompleted;
   final VoidCallback onToggle;
+  final VoidCallback? onInfo;
 
   const _StepTile({
     required this.step,
     required this.index,
     required this.isCompleted,
     required this.onToggle,
+    this.onInfo,
   });
 
   @override
@@ -231,7 +239,7 @@ class _StepTile extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
         decoration: BoxDecoration(
           color: isCompleted ? AppColors.beauty : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -244,7 +252,7 @@ class _StepTile extends StatelessWidget {
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Numero / check
             AnimatedContainer(
@@ -292,6 +300,21 @@ class _StepTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (onInfo != null)
+              GestureDetector(
+                onTap: onInfo,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    size: 20,
+                    color: isCompleted
+                        ? AppColors.beautyDark.withValues(alpha: 0.5)
+                        : AppColors.beautyDark.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
