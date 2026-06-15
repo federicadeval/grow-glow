@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'beauty_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
   final String routineId;
-  const RoutineDetailScreen({super.key, required this.routineId});
+  final DateTime? date;
+  const RoutineDetailScreen({super.key, required this.routineId, this.date});
 
   @override
   State<RoutineDetailScreen> createState() => _RoutineDetailScreenState();
@@ -31,20 +33,38 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
 
   bool get _allDone => _completed.isNotEmpty && _completed.every((c) => c);
 
+  String get _prefsKey =>
+      'routine_completion_${widget.routineId}_${dateStr(widget.date ?? DateTime.now())}';
+
   @override
   void initState() {
     super.initState();
-    _initCompleted();
+    _completed = List<bool>.filled(_steps.length, false);
+    _loadCompleted();
   }
 
   @override
   void didUpdateWidget(RoutineDetailScreen old) {
     super.didUpdateWidget(old);
-    if (old.routineId != widget.routineId) _initCompleted();
+    if (old.routineId != widget.routineId) {
+      _completed = List<bool>.filled(_steps.length, false);
+      _loadCompleted();
+    }
   }
 
-  void _initCompleted() {
-    _completed = List<bool>.filled(_steps.length, false);
+  Future<void> _loadCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_prefsKey);
+    if (saved != null && saved.length == _steps.length) {
+      setState(() {
+        _completed = saved.split('').map((c) => c == '1').toList();
+      });
+    }
+  }
+
+  Future<void> _saveCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, _completed.map((c) => c ? '1' : '0').join());
   }
 
   @override
@@ -67,7 +87,10 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                     step: _steps[i],
                     index: i + 1,
                     isCompleted: _completed[i],
-                    onToggle: () => setState(() => _completed[i] = !_completed[i]),
+                    onToggle: () {
+                      setState(() => _completed[i] = !_completed[i]);
+                      _saveCompleted();
+                    },
                   )),
                 ],
               ),
@@ -81,11 +104,14 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => setState(() {
-                      for (int i = 0; i < _completed.length; i++) {
-                        _completed[i] = true;
-                      }
-                    }),
+                    onPressed: () {
+                      setState(() {
+                        for (int i = 0; i < _completed.length; i++) {
+                          _completed[i] = true;
+                        }
+                      });
+                      _saveCompleted();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.beautyDark,
                       padding: const EdgeInsets.symmetric(vertical: 14),
