@@ -49,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 48),
-              Text('Grow &\nGlow ✨',
+              Text('Grow &\nGlow',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
                   color: AppColors.lavenderDark,
                   height: 1.2,

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum Gender { female, male }
 
 enum FitnessGoal { weightLoss, maintenance, muscleMass }
@@ -13,11 +15,11 @@ extension FitnessGoalLabel on FitnessGoal {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case FitnessGoal.weightLoss: return '⚖️';
-      case FitnessGoal.maintenance: return '🎯';
-      case FitnessGoal.muscleMass: return '💪';
+      case FitnessGoal.weightLoss: return Icons.monitor_weight_rounded;
+      case FitnessGoal.maintenance: return Icons.flag_rounded;
+      case FitnessGoal.muscleMass: return Icons.fitness_center_rounded;
     }
   }
 }
@@ -32,12 +34,12 @@ extension DietStyleLabel on DietStyle {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case DietStyle.onnivora: return '🍗';
-      case DietStyle.vegetariana: return '🥦';
-      case DietStyle.vegana: return '🌱';
-      case DietStyle.altro: return '🍽️';
+      case DietStyle.onnivora: return Icons.restaurant_rounded;
+      case DietStyle.vegetariana: return Icons.eco_rounded;
+      case DietStyle.vegana: return Icons.grass_rounded;
+      case DietStyle.altro: return Icons.dining_rounded;
     }
   }
 }

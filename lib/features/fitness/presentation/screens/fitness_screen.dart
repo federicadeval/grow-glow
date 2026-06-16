@@ -85,25 +85,21 @@ class _GreetingCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.peach, AppColors.fitness],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.heroBackground,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$greeting! 🌅',
+          Text('$greeting!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: AppColors.peachDark,
+              color: AppColors.heroText,
             ),
           ),
           const SizedBox(height: 4),
           Text('Pronta per allenarti oggi?',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.peachDark.withValues(alpha: 0.8),
+              color: AppColors.heroText.withValues(alpha: 0.8),
             ),
           ),
         ],

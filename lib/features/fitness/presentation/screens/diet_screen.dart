@@ -270,7 +270,7 @@ class _MealCardState extends State<_MealCard> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Text(widget.type.emoji, style: const TextStyle(fontSize: 28)),
+                  Icon(widget.type.icon, size: 28, color: AppColors.mintDark),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -555,7 +555,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
             child: Row(
               children: [
-                Text(widget.type.emoji, style: const TextStyle(fontSize: 24)),
+                Icon(widget.type.icon, size: 24, color: AppColors.mintDark),
                 const SizedBox(width: 8),
                 Text(widget.type.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 const Spacer(),

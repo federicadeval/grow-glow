@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../domain/product.dart';
 
 const kProducts = <String, Product>{
@@ -13,7 +14,7 @@ const kProducts = <String, Product>{
     howToUse:
         'Applica sul viso bagnato, massaggia con movimenti circolari delicati per circa 30 secondi, risciacqua abbondantemente con acqua tiepida.',
     keyIngredients: ['Ceramidi (1, 3, 6-II)', 'Acido ialuronico', 'Niacinamide', 'Tecnologia MVE'],
-    emoji: '🫧',
+    icon: Icons.water_drop_rounded,
     timing: ProductTiming.both,
     imageUrl: 'https://media.ulta.com/i/ulta/pimprod2018254?\$promoMedFace\$',
   ),
@@ -29,7 +30,7 @@ const kProducts = <String, Product>{
     howToUse:
         '2° step della doppia detersione serale: dopo aver rimosso trucco e SPF con olio/micellare, applica sul viso bagnato, crea schiuma con le dita e massaggia per 30 secondi. Risciacqua.',
     keyIngredients: ['Ceramidi (1, 3, 6-II)', 'Niacinamide', 'Acido ialuronico', 'PCA idrometile'],
-    emoji: '🧹',
+    icon: Icons.cleaning_services_rounded,
     timing: ProductTiming.evening,
     imageUrl: 'https://media.ulta.com/i/ulta/xlsImpprod5140065?\$promoMedFace\$',
   ),
@@ -45,7 +46,7 @@ const kProducts = <String, Product>{
     howToUse:
         'Applica su dischetti di cotone e tampona delicatamente su tutto il viso, occhi compresi, finché non rimane residuo di makeup sul dischetto. Non risciacquare prima del secondo step.',
     keyIngredients: ['Agenti micellari', 'Glicerina'],
-    emoji: '🧴',
+    icon: Icons.spa_rounded,
     timing: ProductTiming.evening,
   ),
 
@@ -68,7 +69,7 @@ const kProducts = <String, Product>{
       'Acido Ferulico (antiossidante)',
       'Centella Asiatica Extract',
     ],
-    emoji: '🌿',
+    icon: Icons.eco_rounded,
     timing: ProductTiming.morning,
     warnings: 'Usa SPF obbligatoriamente dopo. Conservare al fresco e al riparo dalla luce. Formula BIO: agitare prima dell\'uso.',
   ),
@@ -88,7 +89,7 @@ const kProducts = <String, Product>{
       'Matrixyl 3000™ (Palmitoyl Tripeptide-1 + Palmitoyl Tetrapeptide-7)',
       'Leuconostoc/Radish Root Ferment Filtrate (prebiotico)',
     ],
-    emoji: '💧',
+    icon: Icons.water_rounded,
     timing: ProductTiming.both,
     imageUrl: 'https://media.ulta.com/i/ulta/pimprod2052111?\$promoMedFace\$',
   ),
@@ -108,7 +109,7 @@ const kProducts = <String, Product>{
       'Acido micro ialuronico (1%) — rimpolpa e migliora elasticità',
       'Peptide Dipeptide-1',
     ],
-    emoji: '✨',
+    icon: Icons.auto_awesome_rounded,
     timing: ProductTiming.both,
     imageUrl: 'https://media.ulta.com/i/ulta/pimprod2001763?\$promoMedFace\$',
   ),
@@ -130,7 +131,7 @@ const kProducts = <String, Product>{
       'Estratto di Rosa Perpetua Lancôme',
       'Glicerina',
     ],
-    emoji: '💜',
+    icon: Icons.spa_rounded,
     timing: ProductTiming.both,
     imageUrl: 'https://media.ulta.com/i/ulta/pimprod2054541?\$promoMedFace\$',
   ),
@@ -153,7 +154,7 @@ const kProducts = <String, Product>{
       'Portulaca Oleracea Extract',
       'Filtri UV chimici (SPF 50+ PA++++)',
     ],
-    emoji: '☀️',
+    icon: Icons.wb_sunny_rounded,
     timing: ProductTiming.morning,
     warnings:
         'Non saltare MAI, nemmeno in giorni nuvolosi, in inverno o al chiuso. Fondamentale se usi Retinal, acidi esfolianti o Vitamina C: senza SPF questi prodotti possono causare iperpigmentazione.',
@@ -172,7 +173,7 @@ const kProducts = <String, Product>{
     howToUse:
         'Applica sul viso asciutto o leggermente umido. Massaggia con movimenti circolari delicati per 1-2 minuti evitando il contorno occhi, poi risciacqua abbondantemente.',
     keyIngredients: [],
-    emoji: '🌟',
+    icon: Icons.stars_rounded,
     timing: ProductTiming.morning,
     warnings: 'Solo 1 volta a settimana (sabato). Non usare su pelle irritata, arrossata o con lesioni attive. Non combinare con acidi nella stessa routine.',
   ),
@@ -188,7 +189,7 @@ const kProducts = <String, Product>{
     howToUse:
         'Applica su viso pulito e asciutto dopo la detersione. Tampona con le dita o con dischetto. Non risciacquare. Non usare nella stessa sera del Retinal.',
     keyIngredients: ['BHA (Acido Salicilico 2%)', 'AHA (Acido Glicolico o Lattico)'],
-    emoji: '🧪',
+    icon: Icons.science_rounded,
     timing: ProductTiming.evening,
     warnings:
         'Non combinare con Retinal nella stessa sera — rischio di irritazione. Usa SPF 50+ obbligatoriamente il mattino seguente. Inizia 1 volta a settimana e aumenta gradualmente la frequenza.',
@@ -213,7 +214,7 @@ const kProducts = <String, Product>{
       'Squalane',
       'Tocoferolo (vitamina E)',
     ],
-    emoji: '🌙',
+    icon: Icons.nightlight_rounded,
     timing: ProductTiming.evening,
     warnings:
         'Non usare nella stessa sera degli acidi esfolianti (Buenos Aires). Non usare in gravidanza o allattamento. SPF 50+ il mattino OBBLIGATORIO. Possibile skin purging iniziale (arrossamento, desquamazione) — è normale e temporaneo.',
@@ -232,7 +233,7 @@ const kProducts = <String, Product>{
     howToUse:
         'Applica il prodotto sul viso come da indicazioni del packaging. Lascia agire il tempo necessario, poi risciacqua se richiesto.',
     keyIngredients: [],
-    emoji: '🌿',
+    icon: Icons.eco_rounded,
     timing: ProductTiming.evening,
   ),
 };

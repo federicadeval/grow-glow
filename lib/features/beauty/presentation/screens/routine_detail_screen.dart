@@ -197,7 +197,7 @@ class _CompletedBanner extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('🎉', style: TextStyle(fontSize: 36)),
+          const Icon(Icons.celebration_rounded, size: 36, color: AppColors.beautyDark),
           const SizedBox(height: 8),
           Text('Routine completata!',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(

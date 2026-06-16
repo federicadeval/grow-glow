@@ -203,7 +203,7 @@ class _CategoryFilter extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(cat.emoji, style: const TextStyle(fontSize: 14)),
+                  Icon(cat.icon, size: 14, color: AppColors.todoDark),
                   const SizedBox(width: 6),
                   Text(cat.label,
                     style: TextStyle(
@@ -231,12 +231,12 @@ extension on TodoCategory {
       case TodoCategory.shopping: return 'Shopping';
     }
   }
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case TodoCategory.personal: return '🌸';
-      case TodoCategory.health: return '💚';
-      case TodoCategory.work: return '💼';
-      case TodoCategory.shopping: return '🛍️';
+      case TodoCategory.personal: return Icons.person_rounded;
+      case TodoCategory.health: return Icons.favorite_rounded;
+      case TodoCategory.work: return Icons.work_rounded;
+      case TodoCategory.shopping: return Icons.shopping_bag_rounded;
     }
   }
 }
@@ -330,7 +330,7 @@ class _TodoTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(todo.category.emoji, style: const TextStyle(fontSize: 12)),
+                        Icon(todo.category.icon, size: 12, color: AppColors.todoDark),
                         const SizedBox(width: 4),
                         Text(todo.category.label,
                           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
@@ -471,7 +471,7 @@ class _AddTodoSheetState extends State<_AddTodoSheet> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(cat.emoji, style: const TextStyle(fontSize: 14)),
+                    Icon(cat.icon, size: 14, color: AppColors.todoDark),
                     const SizedBox(width: 6),
                     Text(cat.label,
                       style: TextStyle(

@@ -93,7 +93,7 @@ const _morningSaturday = [
 
 const _eveningRetinal = [
   RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_drop_rounded, productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
   RoutineStep(name: 'Retinal', description: 'Retinaldeide — applica uno strato sottile su tutto il viso. Evita contorno occhi. Inizia 2-3 volte a settimana.', icon: Icons.nightlight_rounded, productId: 'retinal'),
   RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso per nutrire.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
   RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
@@ -102,7 +102,7 @@ const _eveningRetinal = [
 const _eveningBuenosAires = [
   RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
   RoutineStep(name: 'Buenos Aires', description: 'Acido esfoliante (BHA/AHA) — applica su viso asciutto. Non usare insieme al Retinal.', icon: Icons.science_rounded, productId: 'buenos_aires'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido.', icon: Icons.water_drop_rounded, productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
   RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
   RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer.', icon: Icons.spa_rounded, productId: 'lancome'),
 ];
@@ -110,7 +110,7 @@ const _eveningBuenosAires = [
 const _eveningSunday = [
   RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
   RoutineStep(name: 'Bogotà', description: 'Applica il prodotto sul viso come da indicazioni. Lascia agire il tempo necessario, poi risciacqua se richiesto.', icon: Icons.eco_rounded, productId: 'bogota'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_drop_rounded, productId: 'acido_ialuronico'),
+  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
   RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
 ];
 
@@ -296,7 +296,7 @@ class _BeautyScreenState extends State<BeautyScreen> {
             ),
             const SizedBox(height: 12),
             _ProgressCard(
-              icon: Icons.science_rounded,
+              icon: Icons.spa_rounded,
               title: 'Tutti i prodotti',
               subtitle: 'Schede dettagliate di ogni prodotto nella tua routine',
               color: AppColors.mintDark,
@@ -351,16 +351,12 @@ class _StreakBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.beauty, AppColors.blush],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.heroBackground,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         children: [
-          const Icon(Icons.local_fire_department_rounded, size: 40, color: AppColors.beautyDark),
+          const Icon(Icons.auto_awesome_rounded, size: 40, color: AppColors.heroBlobB),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -368,12 +364,12 @@ class _StreakBanner extends StatelessWidget {
             children: [
               Text('La tua routine',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.beautyDark,
+                  color: AppColors.heroText,
                 ),
               ),
               Text('Skincare personalizzata giorno per giorno',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.beautyDark.withValues(alpha: 0.8),
+                  color: AppColors.heroTextSecondary,
                 ),
               ),
             ],
@@ -702,7 +698,7 @@ class _ProgressCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
-                child: Icon(icon, color: color, size: 26),
+                child: Icon(icon, size: 26, color: color),
               ),
             ),
             const SizedBox(width: 14),
