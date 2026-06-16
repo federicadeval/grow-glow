@@ -26,6 +26,8 @@ class AppColors {
   // Feature colors
   static const Color fitness = Color(0xFFFFD6C2);
   static const Color fitnessDark = Color(0xFFE8724A);
+  static const Color diet = Color(0xFFD8F0C0);
+  static const Color dietDark = Color(0xFF5A9E2F);
   static const Color beauty = Color(0xFFE8D5F5);
   static const Color beautyDark = Color(0xFF9B6BC5);
   static const Color todo = Color(0xFFD4F0E8);

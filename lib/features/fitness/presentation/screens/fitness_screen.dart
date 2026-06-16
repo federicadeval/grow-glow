@@ -54,7 +54,7 @@ class FitnessScreen extends ConsumerWidget {
                     icon: Icons.restaurant_rounded,
                     color: AppColors.mintDark,
                     bgColor: AppColors.mint,
-                    onTap: () => context.go('/fitness/diet'),
+                    onTap: () => context.go('/diet'),
                   ),
                 ),
               ],

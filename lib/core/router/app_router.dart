@@ -54,11 +54,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'workout',
                 builder: (context, state) => const WorkoutScreen(),
               ),
-              GoRoute(
-                path: 'diet',
-                builder: (context, state) => const DietScreen(),
-              ),
             ],
+          ),
+          GoRoute(
+            path: '/diet',
+            builder: (context, state) => const DietScreen(),
           ),
           GoRoute(
             path: '/beauty',

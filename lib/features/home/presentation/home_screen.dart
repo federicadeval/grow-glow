@@ -8,8 +8,9 @@ class HomeScreen extends StatelessWidget {
 
   int _locationToIndex(String location) {
     if (location.startsWith('/fitness')) return 1;
-    if (location.startsWith('/beauty')) return 2;
-    if (location.startsWith('/todo')) return 3;
+    if (location.startsWith('/diet')) return 2;
+    if (location.startsWith('/beauty')) return 3;
+    if (location.startsWith('/todo')) return 4;
     return 0;
   }
 
@@ -54,11 +55,19 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => context.go('/fitness'),
                 ),
                 _NavItem(
+                  icon: Icons.restaurant_rounded,
+                  label: 'Dieta',
+                  color: AppColors.dietDark,
+                  bgColor: AppColors.diet,
+                  isSelected: currentIndex == 2,
+                  onTap: () => context.go('/diet'),
+                ),
+                _NavItem(
                   icon: Icons.auto_awesome_rounded,
                   label: 'Beauty',
                   color: AppColors.beautyDark,
                   bgColor: AppColors.beauty,
-                  isSelected: currentIndex == 2,
+                  isSelected: currentIndex == 3,
                   onTap: () => context.go('/beauty'),
                 ),
                 _NavItem(
@@ -66,7 +75,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Todo',
                   color: AppColors.todoDark,
                   bgColor: AppColors.todo,
-                  isSelected: currentIndex == 3,
+                  isSelected: currentIndex == 4,
                   onTap: () => context.go('/todo'),
                 ),
               ],
