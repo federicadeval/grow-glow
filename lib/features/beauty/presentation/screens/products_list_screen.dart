@@ -108,7 +108,7 @@ class _ProductCard extends StatelessWidget {
                             Center(child: Icon(product.icon, size: 24, color: product.category.fgColor)),
                         loadingBuilder: (_, child, progress) => progress == null
                             ? child
-                            : Center(child: Text(product.emoji, style: const TextStyle(fontSize: 24))),
+                            : Center(child: Icon(product.icon, size: 24, color: product.category.fgColor)),
                       ),
                     )
                   : Center(
