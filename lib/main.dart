@@ -10,7 +10,21 @@ Future<void> main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    debugPrint('Flutter error: ${details.exceptionAsString()}');
+    debugPrint('FlutterError: ${details.exceptionAsString()}\n${details.stack}');
+  };
+
+  // Show errors visibly instead of blank screen in release mode
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      child: Container(
+        color: Colors.red.shade50,
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Errore: ${details.exceptionAsString()}',
+          style: const TextStyle(color: Colors.red, fontSize: 12),
+        ),
+      ),
+    );
   };
 
   try {
@@ -18,8 +32,8 @@ Future<void> main() async {
       url: SupabaseConstants.supabaseUrl,
       anonKey: SupabaseConstants.supabaseAnonKey, // ignore: deprecated_member_use
     );
-  } catch (e) {
-    debugPrint('Supabase init error: $e');
+  } catch (e, st) {
+    debugPrint('Supabase init error: $e\n$st');
   }
 
   runApp(
