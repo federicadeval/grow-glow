@@ -17,12 +17,6 @@ class FitnessScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fitness 💪'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline_rounded),
-            onPressed: () => context.push('/profile'),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
