@@ -8,10 +8,19 @@ import 'core/router/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: SupabaseConstants.supabaseUrl,
-    anonKey: SupabaseConstants.supabaseAnonKey, // ignore: deprecated_member_use
-  );
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('Flutter error: ${details.exceptionAsString()}');
+  };
+
+  try {
+    await Supabase.initialize(
+      url: SupabaseConstants.supabaseUrl,
+      anonKey: SupabaseConstants.supabaseAnonKey, // ignore: deprecated_member_use
+    );
+  } catch (e) {
+    debugPrint('Supabase init error: $e');
+  }
 
   runApp(
     const ProviderScope(
