@@ -15,23 +15,20 @@ window.startBarcodeScanner = async function(dartCallback) {
     _zxingReader = new ZXing.BrowserMultiFormatReader();
     _scannerActive = true;
 
-    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    // prefer rear camera
-    const deviceId = devices.length > 1
-      ? (devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1]).deviceId
-      : (devices[0]?.deviceId || undefined);
-
-    await _zxingReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
-      if (result) {
-        const code = result.getText();
-        hint.textContent = '✅ ' + code;
-        window.stopBarcodeScanner();
-        // call dart
-        if (dartCallback && typeof dartCallback === 'function') {
-          dartCallback(code);
+    await _zxingReader.decodeFromConstraints(
+      { video: { facingMode: { ideal: 'environment' } } },
+      video,
+      (result, err) => {
+        if (result) {
+          const code = result.getText();
+          hint.textContent = '✅ ' + code;
+          window.stopBarcodeScanner();
+          if (dartCallback && typeof dartCallback === 'function') {
+            dartCallback(code);
+          }
         }
       }
-    });
+    );
   } catch (e) {
     hint.textContent = '❌ Camera non disponibile: ' + e.message;
     console.error('BarcodeScanner error:', e);
