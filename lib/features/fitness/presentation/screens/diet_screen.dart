@@ -284,7 +284,7 @@ class _MealCardState extends State<_MealCard> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(color: const Color(0xFFFFE0B2), borderRadius: BorderRadius.circular(8)),
-                                child: const Text('🍽️ fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
+                                child: const Text('fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
                               ),
                             ],
                           ],
@@ -297,7 +297,7 @@ class _MealCardState extends State<_MealCard> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              _MacroPill('🔥 ${meal.effectiveKcal}', AppColors.fitnessDark, AppColors.fitness),
+                              _MacroPill('${meal.effectiveKcal} kcal', AppColors.fitnessDark, AppColors.fitness),
                               if (hasIngredients) ...[
                                 const SizedBox(width: 6),
                                 _MacroPill('P ${meal.totalProtein.round()}g', AppColors.peachDark, AppColors.peach),
@@ -381,10 +381,10 @@ class _MealCardState extends State<_MealCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _MacroDetail('🥩 Prot.', '${meal.totalProtein.round()}g'),
-                        _MacroDetail('🍞 Carb.', '${meal.totalCarbs.round()}g'),
-                        _MacroDetail('🥑 Grassi', '${meal.totalFat.round()}g'),
-                        _MacroDetail('🔥 Kcal', '${meal.effectiveKcal}'),
+                        _MacroDetail('Prot.', '${meal.totalProtein.round()}g'),
+                        _MacroDetail('Carb.', '${meal.totalCarbs.round()}g'),
+                        _MacroDetail('Grassi', '${meal.totalFat.round()}g'),
+                        _MacroDetail('Kcal', '${meal.effectiveKcal}'),
                       ],
                     ),
                   ],
@@ -622,7 +622,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
                           ),
                           child: Row(
                             children: [
-                              const Text('🍽️', style: TextStyle(fontSize: 20)),
+                              const Icon(Icons.restaurant_rounded, size: 20, color: Color(0xFFE65100)),
                               const SizedBox(width: 12),
                               const Expanded(child: Text('Mangio fuori', style: TextStyle(fontWeight: FontWeight.w600))),
                               Icon(
@@ -890,7 +890,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _InfoChip('🔥 ${result.kcalPer100g.round()} kcal'),
+                  _InfoChip('${result.kcalPer100g.round()} kcal'),
                   _InfoChip('P ${result.proteinPer100g.round()}g'),
                   _InfoChip('C ${result.carbsPer100g.round()}g'),
                   _InfoChip('G ${result.fatPer100g.round()}g'),
