@@ -176,12 +176,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: _dietStyle == d ? AppColors.mintDark : AppColors.divider),
                     ),
-                    child: Text('${d.emoji} ${d.label}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: _dietStyle == d ? Colors.white : AppColors.textPrimary,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(d.icon, size: 16, color: _dietStyle == d ? Colors.white : AppColors.textPrimary),
+                        const SizedBox(width: 6),
+                        Text(d.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: _dietStyle == d ? Colors.white : AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 )).toList(),
@@ -358,7 +365,7 @@ class _GoalCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(goal.emoji, style: const TextStyle(fontSize: 28)),
+            Icon(goal.icon, size: 28, color: selected ? AppColors.peachDark : AppColors.textSecondary),
             const SizedBox(width: 14),
             Expanded(
               child: Text(goal.label,
@@ -398,7 +405,7 @@ class _KcalPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🔥 Kcal giornaliere suggerite',
+          Text('Kcal giornaliere suggerite',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -449,9 +456,9 @@ class _MacroCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _MacroItem(label: 'Proteine', value: '${profile.proteinG}g', color: AppColors.peachDark, emoji: '🥩'),
-              _MacroItem(label: 'Carboidrati', value: '${profile.carbsG}g', color: AppColors.mintDark, emoji: '🍞'),
-              _MacroItem(label: 'Grassi', value: '${profile.fatG}g', color: AppColors.lavenderDark, emoji: '🥑'),
+              _MacroItem(label: 'Proteine', value: '${profile.proteinG}g', color: AppColors.peachDark, icon: Icons.set_meal_rounded),
+              _MacroItem(label: 'Carboidrati', value: '${profile.carbsG}g', color: AppColors.mintDark, icon: Icons.grain_rounded),
+              _MacroItem(label: 'Grassi', value: '${profile.fatG}g', color: AppColors.lavenderDark, icon: Icons.opacity_rounded),
             ],
           ),
         ],
@@ -464,14 +471,14 @@ class _MacroItem extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  final String emoji;
-  const _MacroItem({required this.label, required this.value, required this.color, required this.emoji});
+  final IconData icon;
+  const _MacroItem({required this.label, required this.value, required this.color, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
+        Icon(icon, size: 24, color: color),
         const SizedBox(height: 4),
         Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color)),
         Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),

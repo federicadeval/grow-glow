@@ -16,12 +16,12 @@ class ExerciseData {
 
 class WorkoutDetailScreen extends StatefulWidget {
   final String name;
-  final String emoji;
+  final IconData icon;
 
   const WorkoutDetailScreen({
     super.key,
     required this.name,
-    required this.emoji,
+    required this.icon,
   });
 
   @override
@@ -48,7 +48,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Text(widget.emoji, style: const TextStyle(fontSize: 22)),
+            Icon(widget.icon, size: 22, color: AppColors.peachDark),
             const SizedBox(width: 8),
             Text(widget.name),
           ],
@@ -97,7 +97,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🏋️', style: TextStyle(fontSize: 56)),
+          const Icon(Icons.fitness_center_rounded, size: 56, color: AppColors.peachDark),
           const SizedBox(height: 16),
           Text('Nessun esercizio ancora',
             style: Theme.of(context).textTheme.titleLarge,

@@ -576,7 +576,7 @@ class _CompletionDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(isPartial ? '💪' : '🎉', style: const TextStyle(fontSize: 56)),
+            Icon(isPartial ? Icons.fitness_center_rounded : Icons.celebration_rounded, size: 56, color: AppColors.peachDark),
             const SizedBox(height: 12),
             Text(isPartial ? 'Sessione terminata!' : 'Sessione completata!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -594,16 +594,16 @@ class _CompletionDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _StatItem(label: 'Durata', value: '$minutes min', icon: '⏱️'),
+                _StatItem(label: 'Durata', value: '$minutes min', icon: Icons.timer_rounded),
                 _StatItem(
                   label: 'Kcal stimate',
                   value: '~$kcal',
-                  icon: '🔥',
+                  icon: Icons.local_fire_department_rounded,
                 ),
                 _StatItem(
                   label: 'Esercizi',
                   value: '${workout.exercises.length}',
-                  icon: '💪',
+                  icon: Icons.fitness_center_rounded,
                 ),
               ],
             ),
@@ -649,7 +649,7 @@ class _CompletionDialog extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final String icon;
+  final IconData icon;
   const _StatItem({
     required this.label,
     required this.value,
@@ -660,7 +660,7 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 28)),
+        Icon(icon, size: 28, color: AppColors.peachDark),
         const SizedBox(height: 4),
         Text(value,
           style: const TextStyle(

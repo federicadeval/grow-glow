@@ -37,11 +37,11 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Dieta 🥗'),
+        title: const Text('Dieta'),
         actions: [
           TextButton.icon(
             onPressed: () => _confirmGenerate(context, ref),
-            icon: const Text('✨', style: TextStyle(fontSize: 16)),
+            icon: const Icon(Icons.auto_awesome_rounded, size: 16),
             label: const Text('Genera', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
@@ -55,10 +55,10 @@ class _DietScreenState extends ConsumerState<DietScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _KcalPill('🎯', 'Obiettivo', '$targetKcal'),
-                _KcalPill('🍽️', 'Consumate', '${calories.consumedKcal}'),
-                _KcalPill('🏋️', 'Bruciate', '${calories.burnedKcal}'),
-                _KcalPill('✅', 'Rimanenti',
+                _KcalPill(Icons.flag_rounded, 'Obiettivo', '$targetKcal'),
+                _KcalPill(Icons.restaurant_rounded, 'Consumate', '${calories.consumedKcal}'),
+                _KcalPill(Icons.fitness_center_rounded, 'Bruciate', '${calories.burnedKcal}'),
+                _KcalPill(Icons.check_circle_rounded, 'Rimanenti',
                   '${(targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
               ],
             ),
@@ -153,7 +153,7 @@ class _DietScreenState extends ConsumerState<DietScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('✨ Genera piano settimanale'),
+        title: const Text('Genera piano settimanale'),
         content: const Text(
           'Verrà generato un piano vegetariano per tutta la settimana. '
           'I pasti esistenti verranno sostituiti. Puoi modificarli in qualsiasi momento.',
@@ -202,16 +202,23 @@ class _DietScreenState extends ConsumerState<DietScreen> {
 }
 
 class _KcalPill extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String label;
   final String value;
-  const _KcalPill(this.emoji, this.label, this.value);
+  const _KcalPill(this.icon, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('$emoji $value', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: AppColors.mintDark),
+            const SizedBox(width: 4),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          ],
+        ),
         Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
       ],
     );
@@ -263,7 +270,7 @@ class _MealCardState extends State<_MealCard> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Text(widget.type.emoji, style: const TextStyle(fontSize: 28)),
+                  Icon(widget.type.icon, size: 28, color: AppColors.mintDark),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -277,7 +284,7 @@ class _MealCardState extends State<_MealCard> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(color: const Color(0xFFFFE0B2), borderRadius: BorderRadius.circular(8)),
-                                child: const Text('🍽️ fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
+                                child: const Text('fuori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFE65100))),
                               ),
                             ],
                           ],
@@ -290,7 +297,7 @@ class _MealCardState extends State<_MealCard> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              _MacroPill('🔥 ${meal.effectiveKcal}', AppColors.fitnessDark, AppColors.fitness),
+                              _MacroPill('${meal.effectiveKcal} kcal', AppColors.fitnessDark, AppColors.fitness),
                               if (hasIngredients) ...[
                                 const SizedBox(width: 6),
                                 _MacroPill('P ${meal.totalProtein.round()}g', AppColors.peachDark, AppColors.peach),
@@ -374,10 +381,10 @@ class _MealCardState extends State<_MealCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _MacroDetail('🥩 Prot.', '${meal.totalProtein.round()}g'),
-                        _MacroDetail('🍞 Carb.', '${meal.totalCarbs.round()}g'),
-                        _MacroDetail('🥑 Grassi', '${meal.totalFat.round()}g'),
-                        _MacroDetail('🔥 Kcal', '${meal.effectiveKcal}'),
+                        _MacroDetail('Prot.', '${meal.totalProtein.round()}g'),
+                        _MacroDetail('Carb.', '${meal.totalCarbs.round()}g'),
+                        _MacroDetail('Grassi', '${meal.totalFat.round()}g'),
+                        _MacroDetail('Kcal', '${meal.effectiveKcal}'),
                       ],
                     ),
                   ],
@@ -548,7 +555,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
             child: Row(
               children: [
-                Text(widget.type.emoji, style: const TextStyle(fontSize: 24)),
+                Icon(widget.type.icon, size: 24, color: AppColors.mintDark),
                 const SizedBox(width: 8),
                 Text(widget.type.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 const Spacer(),
@@ -615,7 +622,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
                           ),
                           child: Row(
                             children: [
-                              const Text('🍽️', style: TextStyle(fontSize: 20)),
+                              const Icon(Icons.restaurant_rounded, size: 20, color: Color(0xFFE65100)),
                               const SizedBox(width: 12),
                               const Expanded(child: Text('Mangio fuori', style: TextStyle(fontWeight: FontWeight.w600))),
                               Icon(
@@ -883,7 +890,7 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _InfoChip('🔥 ${result.kcalPer100g.round()} kcal'),
+                  _InfoChip('${result.kcalPer100g.round()} kcal'),
                   _InfoChip('P ${result.proteinPer100g.round()}g'),
                   _InfoChip('C ${result.carbsPer100g.round()}g'),
                   _InfoChip('G ${result.fatPer100g.round()}g'),

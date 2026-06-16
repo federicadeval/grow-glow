@@ -16,7 +16,7 @@ class FitnessScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fitness 💪'),
+        title: const Text('Fitness'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -85,25 +85,21 @@ class _GreetingCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.peach, AppColors.fitness],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.heroBackground,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$greeting! 🌅',
+          Text('$greeting!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: AppColors.peachDark,
+              color: AppColors.heroText,
             ),
           ),
           const SizedBox(height: 4),
           Text('Pronta per allenarti oggi?',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.peachDark.withValues(alpha: 0.8),
+              color: AppColors.heroText.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -194,28 +190,28 @@ class _KcalBanner extends StatelessWidget {
                   value: target,
                   unit: 'kcal',
                   color: AppColors.peachDark,
-                  icon: '🎯',
+                  icon: Icons.flag_rounded,
                 ),
                 _KcalCell(
                   label: 'Bruciate',
                   value: daily.burnedKcal,
                   unit: 'kcal',
                   color: AppColors.mintDark,
-                  icon: '🏋️',
+                  icon: Icons.fitness_center_rounded,
                 ),
                 _KcalCell(
                   label: 'Consumate',
                   value: daily.consumedKcal,
                   unit: 'kcal',
                   color: AppColors.lavenderDark,
-                  icon: '🍽️',
+                  icon: Icons.restaurant_rounded,
                 ),
                 _KcalCell(
                   label: 'Rimanenti',
                   value: net,
                   unit: 'kcal',
                   color: net >= 0 ? AppColors.mintDark : AppColors.blushDark,
-                  icon: net >= 0 ? '✅' : '⚠️',
+                  icon: net >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded,
                 ),
               ],
             ),
@@ -269,7 +265,7 @@ class _KcalBanner extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Aggiungi pasto 🍽️',
+            Text('Aggiungi pasto',
               style: Theme.of(ctx).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -319,7 +315,7 @@ class _KcalCell extends StatelessWidget {
   final int value;
   final String unit;
   final Color color;
-  final String icon;
+  final IconData icon;
 
   const _KcalCell({
     required this.label,
@@ -333,7 +329,7 @@ class _KcalCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 20)),
+        Icon(icon, color: color, size: 20),
         const SizedBox(height: 4),
         Text('$value',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color),

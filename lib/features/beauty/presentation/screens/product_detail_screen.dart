@@ -133,12 +133,12 @@ class _ProductAppBar extends StatelessWidget {
                             product.imageUrl!,
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) =>
-                                Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                                Icon(product.icon, size: 56, color: product.category.fgColor),
                             loadingBuilder: (_, child, progress) => progress == null
                                 ? child
-                                : Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                                : Icon(product.icon, size: 56, color: product.category.fgColor),
                           )
-                        : Text(product.emoji, style: const TextStyle(fontSize: 56)),
+                        : Icon(product.icon, size: 56, color: product.category.fgColor),
                   ),
                 ),
                 if (product.brand.isNotEmpty)
@@ -276,7 +276,7 @@ class _WarningsCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('⚠️', style: TextStyle(fontSize: 18)),
+          const Icon(Icons.warning_rounded, size: 18, color: AppColors.todoDark),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

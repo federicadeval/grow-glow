@@ -56,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Crea il tuo\naccount 🌸',
+              Text('Crea il tuo\naccount',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: AppColors.blushDark,
                   height: 1.2,

@@ -52,20 +52,20 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Basato su fatica
     if (_fatigue! <= 2) {
       suggestions.add(_Suggestion(
-        emoji: '⬆️',
+        icon: Icons.trending_up_rounded,
         title: 'Aumenta il carico',
         body: 'Ti sei sentita poco affaticata — è il momento di aggiungere 2-2.5 kg agli esercizi principali (squat, panca, stacco).',
         type: _SuggestionType.increase,
       ));
     } else if (_fatigue! == 5) {
       suggestions.add(_Suggestion(
-        emoji: '⬇️',
+        icon: Icons.trending_down_rounded,
         title: 'Riduci leggermente il carico',
         body: 'Fatica molto alta: prova a ridurre il peso del 10-15% nella prossima sessione e concentrati sulla tecnica.',
         type: _SuggestionType.decrease,
       ));
       suggestions.add(_Suggestion(
-        emoji: '😴',
+        icon: Icons.bedtime_rounded,
         title: 'Priorità al recupero',
         body: 'Dormi almeno 7-8 ore stanotte e assicurati di mangiare abbastanza proteine (1.6g per kg di peso corporeo).',
         type: _SuggestionType.rest,
@@ -75,14 +75,14 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Basato sul carico
     if (_loadFeel == _LoadFeel.tooLight) {
       suggestions.add(_Suggestion(
-        emoji: '🏋️',
+        icon: Icons.fitness_center_rounded,
         title: 'Il peso era troppo leggero',
         body: 'Aggiungi 2.5 kg agli esercizi con bilanciere e 1 kg per quelli con manubri nella prossima sessione.',
         type: _SuggestionType.increase,
       ));
     } else if (_loadFeel == _LoadFeel.tooHeavy) {
       suggestions.add(_Suggestion(
-        emoji: '🎯',
+        icon: Icons.flag_rounded,
         title: 'Riduci il carico',
         body: 'Se non riesci a mantenere la tecnica corretta, togli 2.5 kg. Meglio meno peso con forma perfetta.',
         type: _SuggestionType.decrease,
@@ -92,7 +92,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Dolori articolari
     if (_jointPain == true) {
       suggestions.add(_Suggestion(
-        emoji: '⚠️',
+        icon: Icons.warning_rounded,
         title: 'Attenzione ai dolori articolari',
         body: 'Se il dolore persiste, consulta un medico. Nel frattempo evita l\'esercizio che lo causa e sostituiscilo con una variante meno impattante.',
         type: _SuggestionType.warning,
@@ -105,7 +105,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
       final tip = _exerciseTip(ex.name);
       if (tip != null) {
         suggestions.add(_Suggestion(
-          emoji: '💡',
+          icon: Icons.lightbulb_rounded,
           title: '${ex.name} — consiglio',
           body: tip,
           type: _SuggestionType.tip,
@@ -116,14 +116,14 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Umore
     if (_mood == _Mood.bad) {
       suggestions.add(_Suggestion(
-        emoji: '🌸',
+        icon: Icons.favorite_rounded,
         title: 'Hai fatto benissimo lo stesso!',
         body: 'Allenarsi anche quando non si è al massimo è la vera forza. La prossima volta potrebbe andare meglio — e anche se non fosse così, conta lo stesso.',
         type: _SuggestionType.motivation,
       ));
     } else if (_mood == _Mood.great) {
       suggestions.add(_Suggestion(
-        emoji: '🔥',
+        icon: Icons.local_fire_department_rounded,
         title: 'Sei in forma!',
         body: 'Ottimo umore = ottima sessione. Considera di aggiungere una serie extra agli esercizi principali la prossima volta.',
         type: _SuggestionType.increase,
@@ -132,7 +132,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
 
     if (suggestions.isEmpty) {
       suggestions.add(_Suggestion(
-        emoji: '✅',
+        icon: Icons.check_circle_rounded,
         title: 'Tutto nella norma',
         body: 'La sessione è andata bene! Continua così e rivedi i carichi tra 2-3 settimane.',
         type: _SuggestionType.tip,
@@ -194,7 +194,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(5, (i) {
                   final level = i + 1;
-                  final labels = ['😴', '🙂', '😤', '😓', '🥵'];
+                  final fatigueIcons = [Icons.bedtime_rounded, Icons.sentiment_satisfied_rounded, Icons.directions_run_rounded, Icons.sentiment_dissatisfied_rounded, Icons.local_fire_department_rounded];
                   final sublabels = ['Per niente', 'Poco', 'Moderata', 'Molto', 'Esausta'];
                   final isSelected = _fatigue == level;
                   return GestureDetector(
@@ -211,7 +211,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(labels[i], style: const TextStyle(fontSize: 28)),
+                          Icon(fatigueIcons[i], size: 28, color: isSelected ? AppColors.peachDark : AppColors.textSecondary),
                           const SizedBox(height: 4),
                           Text('$level',
                             style: TextStyle(
@@ -252,7 +252,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                     ),
                     child: Row(
                       children: [
-                        Text(l.emoji, style: const TextStyle(fontSize: 22)),
+                        Icon(l.icon, size: 22, color: _loadFeel == l ? AppColors.peachDark : AppColors.textSecondary),
                         const SizedBox(width: 12),
                         Text(l.label,
                           style: TextStyle(
@@ -288,7 +288,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Text('✅', style: TextStyle(fontSize: 24)),
+                            const Icon(Icons.check_circle_rounded, size: 24, color: AppColors.mintDark),
                             const SizedBox(height: 4),
                             Text('No, tutto ok',
                               style: TextStyle(
@@ -318,7 +318,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Text('⚠️', style: TextStyle(fontSize: 24)),
+                            const Icon(Icons.warning_rounded, size: 24, color: AppColors.blushDark),
                             const SizedBox(height: 4),
                             Text('Sì, qualcosa',
                               style: TextStyle(
@@ -398,7 +398,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(m.emoji, style: const TextStyle(fontSize: 32)),
+                          Icon(m.icon, size: 32, color: isSelected ? AppColors.lavenderDark : AppColors.textSecondary),
                           const SizedBox(height: 4),
                           Text(m.label,
                             style: TextStyle(
@@ -449,11 +449,11 @@ extension on _LoadFeel {
       case _LoadFeel.tooHeavy: return 'Troppo pesante, ho faticato con la tecnica';
     }
   }
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case _LoadFeel.tooLight: return '🪶';
-      case _LoadFeel.justRight: return '🎯';
-      case _LoadFeel.tooHeavy: return '🏋️';
+      case _LoadFeel.tooLight: return Icons.arrow_downward_rounded;
+      case _LoadFeel.justRight: return Icons.check_circle_rounded;
+      case _LoadFeel.tooHeavy: return Icons.fitness_center_rounded;
     }
   }
 }
@@ -461,12 +461,12 @@ extension on _LoadFeel {
 enum _Mood { bad, neutral, good, great }
 
 extension on _Mood {
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case _Mood.bad: return '😔';
-      case _Mood.neutral: return '😐';
-      case _Mood.good: return '😊';
-      case _Mood.great: return '🤩';
+      case _Mood.bad: return Icons.sentiment_very_dissatisfied_rounded;
+      case _Mood.neutral: return Icons.sentiment_neutral_rounded;
+      case _Mood.good: return Icons.sentiment_satisfied_rounded;
+      case _Mood.great: return Icons.sentiment_very_satisfied_rounded;
     }
   }
   String get label {
@@ -483,12 +483,12 @@ extension on _Mood {
 enum _SuggestionType { increase, decrease, rest, tip, warning, motivation }
 
 class _Suggestion {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String body;
   final _SuggestionType type;
   const _Suggestion({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.body,
     required this.type,
@@ -533,7 +533,7 @@ class _SuggestionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('I tuoi suggerimenti 💡')),
+      appBar: AppBar(title: const Text('I tuoi suggerimenti')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -553,7 +553,7 @@ class _SuggestionsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text(_fatigueEmoji, style: const TextStyle(fontSize: 44)),
+                  Icon(_fatigueIcon, size: 44, color: AppColors.peachDark),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -607,13 +607,13 @@ class _SuggestionsScreen extends StatelessWidget {
     );
   }
 
-  String get _fatigueEmoji {
+  IconData get _fatigueIcon {
     switch (fatigue) {
-      case 1: return '😴';
-      case 2: return '🙂';
-      case 3: return '😤';
-      case 4: return '😓';
-      default: return '🥵';
+      case 1: return Icons.bedtime_rounded;
+      case 2: return Icons.sentiment_satisfied_rounded;
+      case 3: return Icons.directions_run_rounded;
+      case 4: return Icons.sentiment_dissatisfied_rounded;
+      default: return Icons.local_fire_department_rounded;
     }
   }
 }
@@ -634,7 +634,7 @@ class _SuggestionCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(suggestion.emoji, style: const TextStyle(fontSize: 28)),
+          Icon(suggestion.icon, size: 28, color: suggestion.type.color),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

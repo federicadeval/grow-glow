@@ -23,12 +23,12 @@ extension on IntervalType {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case IntervalType.warmup: return '🚶';
-      case IntervalType.run: return '🏃‍♀️';
-      case IntervalType.walk: return '🚶‍♀️';
-      case IntervalType.cooldown: return '😮‍💨';
+      case IntervalType.warmup: return Icons.directions_walk_rounded;
+      case IntervalType.run: return Icons.directions_run_rounded;
+      case IntervalType.walk: return Icons.directions_walk_rounded;
+      case IntervalType.cooldown: return Icons.self_improvement_rounded;
     }
   }
 
@@ -94,7 +94,7 @@ List<C25KInterval> _buildSession(int weekIndex) {
       intervals.add(const C25KInterval(IntervalType.run, 28 * 60));
     case 7: // W8: 28-30 min
       intervals.add(const C25KInterval(IntervalType.run, 30 * 60));
-    case 8: // W9: 30 min = 5K 🎉
+    case 8: // W9: 30 min = 5K
       intervals.add(const C25KInterval(IntervalType.run, 30 * 60));
   }
 
@@ -293,7 +293,7 @@ class _C25KSessionScreenState extends ConsumerState<C25KSessionScreen>
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text('🔥 ${_kcalBurned.round()} kcal',
+                  Text('${_kcalBurned.round()} kcal',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -356,8 +356,9 @@ class _C25KSessionScreenState extends ConsumerState<C25KSessionScreen>
                           scale: isRunning
                               ? 1.0 + (_pulseCtrl.value * 0.15)
                               : 1.0,
-                          child: Text(_current.type.emoji,
-                            style: const TextStyle(fontSize: 72),
+                          child: Icon(_current.type.icon,
+                            size: 72,
+                            color: _current.type.color,
                           ),
                         ),
                       ),
@@ -430,8 +431,7 @@ class _C25KSessionScreenState extends ConsumerState<C25KSessionScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(nextInterval.type.emoji,
-                                  style: const TextStyle(fontSize: 18)),
+                              Icon(nextInterval.type.icon, size: 18, color: _current.type.color),
                               const SizedBox(width: 8),
                               Text(
                                 'Prossimo: ${nextInterval.type.label} · ${_formatTime(nextInterval.seconds)}',
@@ -528,8 +528,9 @@ class _C25KCompletionDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(isLastWeek ? '🏅' : '🎉',
-              style: const TextStyle(fontSize: 56),
+            Icon(isLastWeek ? Icons.emoji_events_rounded : Icons.celebration_rounded,
+              size: 56,
+              color: AppColors.mintDark,
             ),
             const SizedBox(height: 12),
             Text(
@@ -550,11 +551,11 @@ class _C25KCompletionDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _StatItem(label: 'Durata', value: '$elapsedMinutes min', icon: '⏱️'),
+                _StatItem(label: 'Durata', value: '$elapsedMinutes min', icon: Icons.timer_rounded),
                 _StatItem(
                   label: 'Kcal bruciate',
                   value: '~$kcalBurned',
-                  icon: '🔥',
+                  icon: Icons.local_fire_department_rounded,
                 ),
               ],
             ),
@@ -569,7 +570,7 @@ class _C25KCompletionDialog extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mintDark,
                 ),
-                child: Text(isLastWeek ? 'Sei una runner! 🏃‍♀️' : 'Ottimo lavoro!'),
+                child: Text(isLastWeek ? 'Sei una runner!' : 'Ottimo lavoro!'),
               ),
             ),
           ],
@@ -582,14 +583,14 @@ class _C25KCompletionDialog extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final String icon;
+  final IconData icon;
   const _StatItem({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 28)),
+        Icon(icon, size: 28, color: AppColors.mintDark),
         const SizedBox(height: 4),
         Text(value,
           style: const TextStyle(

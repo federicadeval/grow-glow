@@ -54,8 +54,8 @@ enum ProductTiming { morning, evening, both }
 extension ProductTimingData on ProductTiming {
   String get label {
     switch (this) {
-      case ProductTiming.morning: return 'Mattina ☀️';
-      case ProductTiming.evening: return 'Sera 🌙';
+      case ProductTiming.morning: return 'Mattina';
+      case ProductTiming.evening: return 'Sera';
       case ProductTiming.both:    return 'Mattina & Sera';
     }
   }
@@ -70,7 +70,7 @@ class Product {
   final String description;
   final String howToUse;
   final List<String> keyIngredients;
-  final String emoji;
+  final IconData icon;
   final ProductTiming timing;
   final String? warnings;
   final String? imageUrl;
@@ -84,7 +84,7 @@ class Product {
     required this.description,
     required this.howToUse,
     this.keyIngredients = const [],
-    required this.emoji,
+    required this.icon,
     required this.timing,
     this.warnings,
     this.imageUrl,

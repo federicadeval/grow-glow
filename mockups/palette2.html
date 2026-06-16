@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palette v2 — Grow & Glow</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111118;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+  }
+  h1 { color: #fff; font-size: 20px; font-weight: 700; text-align: center; }
+  .palettes-row {
+    display: flex; gap: 28px; flex-wrap: wrap; justify-content: center;
+  }
+
+  .phone {
+    width: 310px;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+    border: 7px solid #1a1a1a;
+  }
+  .notch {
+    width: 100px; height: 22px; background: #1a1a1a;
+    border-radius: 0 0 16px 16px; margin: 0 auto;
+  }
+  .screen { padding: 0 16px 16px; }
+
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0 10px;
+  }
+  .top-bar h2 { font-size: 17px; font-weight: 700; color: var(--text-primary); }
+  .top-bar p  { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+  .avatar {
+    width: 32px; height: 32px; background: var(--accent-light);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+  }
+
+  /* Hero card */
+  .hero {
+    background: var(--hero-bg);
+    border-radius: 18px; padding: 14px; margin-bottom: 10px;
+  }
+  .hero-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .rings { display: flex; gap: 12px; align-items: center; }
+  .ring-w { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .ring {
+    width: 62px; height: 62px; border-radius: 50%;
+    border: 6px solid var(--ring-track);
+    display: flex; align-items: center; justify-content: center;
+    outline: 0px solid transparent;
+  }
+  .ring-val { font-size: 12px; font-weight: 800; color: var(--text-primary); line-height: 1.1; text-align: center; }
+  .ring-unit { font-size: 8px; color: var(--text-secondary); display: block; }
+  .ring-lbl { font-size: 10px; font-weight: 600; color: var(--text-primary); }
+  .ring-sub  { font-size: 8px; color: var(--text-secondary); margin-top: -2px; }
+  .divv { width: 1px; height: 56px; background: var(--divider); }
+  .hero-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--divider);
+    font-size: 10px; color: var(--text-secondary);
+  }
+  .hero-foot strong { color: var(--text-primary); }
+  .btn-w {
+    background: var(--accent-light); color: var(--accent);
+    border: none; border-radius: 12px;
+    padding: 4px 10px; font-size: 9px; font-weight: 700; cursor: pointer;
+  }
+
+  /* Section cards */
+  .s-label {
+    font-size: 10px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 7px;
+  }
+  .sc {
+    background: var(--surface);
+    border-radius: 13px; padding: 10px 12px; margin-bottom: 7px;
+    display: flex; flex-direction: column; gap: 4px;
+    border-left: 3px solid transparent;
+  }
+  .sc.fit { border-left-color: var(--c-fit); }
+  .sc.die { border-left-color: var(--c-die); }
+  .sc.bea { border-left-color: var(--c-bea); }
+
+  .sc-top { display: flex; justify-content: space-between; align-items: center; }
+  .sc-title {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700; color: var(--text-primary);
+  }
+  .sc-ico {
+    width: 24px; height: 24px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .sc.fit .sc-ico { background: var(--fit-bg); color: var(--c-fit); }
+  .sc.die .sc-ico { background: var(--die-bg); color: var(--c-die); }
+  .sc.bea .sc-ico { background: var(--bea-bg); color: var(--c-bea); }
+  .sc-arr { font-size: 11px; color: #bbb; }
+  .sc-sub { font-size: 10px; color: var(--text-secondary); padding-left: 30px; }
+  .badge-ok {
+    background: var(--bea-bg); color: var(--c-bea);
+    font-size: 9px; font-weight: 700;
+    padding: 2px 7px; border-radius: 7px; margin-left: 30px; display: inline-block;
+  }
+
+  /* Bottom nav */
+  .bnav {
+    display: flex; background: var(--surface);
+    padding: 8px 10px 12px; border-top: 1px solid var(--divider);
+    gap: 3px; margin-top: 6px;
+  }
+  .ni {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 5px 3px; border-radius: 11px;
+    font-size: 8px; font-weight: 600; color: var(--text-secondary);
+  }
+  .ni.on {
+    background: var(--accent-light); color: var(--accent);
+    flex-direction: row; justify-content: center; gap: 4px; font-size: 9px;
+  }
+  .ni-ico { font-size: 15px; }
+
+  /* Labels */
+  .wrap { display: flex; flex-direction: column; align-items: center; }
+  .p-name { color: #fff; font-size: 15px; font-weight: 700; text-align: center; margin-bottom: 5px; }
+  .p-desc { color: #999; font-size: 11px; text-align: center; margin-bottom: 12px; }
+  .swatches { display: flex; gap: 7px; justify-content: center; margin-bottom: 14px; }
+  .sw { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); }
+
+  /* ══════════════════════════════════════════
+     PALETTE A — Rose Quartz (mono rosé)
+  ══════════════════════════════════════════ */
+  .pA {
+    --bg:             #FDF5F7;
+    --surface:        #FFFFFF;
+    --text-primary:   #2A1820;
+    --text-secondary: #9A7A84;
+    --divider:        #F0E4E8;
+    --hero-bg:        #FFF0F3;
+    --ring-track:     #FADADF;
+    --accent:         #C0305A;
+    --accent-light:   #FFE0E8;
+    --c-fit:          #D04070;
+    --fit-bg:         #FFE4EC;
+    --c-die:          #906890;
+    --die-bg:         #F0E0F0;
+    --c-bea:          #C0305A;
+    --bea-bg:         #FFE4EC;
+  }
+
+  /* ══════════════════════════════════════════
+     PALETTE B — Caramel (beige/toffee)
+  ══════════════════════════════════════════ */
+  .pB {
+    --bg:             #FAF6F1;
+    --surface:        #FFFFFF;
+    --text-primary:   #2C2018;
+    --text-secondary: #9A8070;
+    --divider:        #EDE4D8;
+    --hero-bg:        #FFF4EA;
+    --ring-track:     #F5E4D0;
+    --accent:         #B06020;
+    --accent-light:   #FFE8CC;
+    --c-fit:          #B06020;
+    --fit-bg:         #FFE8CC;
+    --c-die:          #5A7A30;
+    --die-bg:         #E4EED8;
+    --c-bea:          #904060;
+    --bea-bg:         #F8DDE8;
+  }
+
+  /* ══════════════════════════════════════════
+     PALETTE C — Slate (cool minimal)
+  ══════════════════════════════════════════ */
+  .pC {
+    --bg:             #F6F7FA;
+    --surface:        #FFFFFF;
+    --text-primary:   #18202E;
+    --text-secondary: #708090;
+    --divider:        #E4E8F0;
+    --hero-bg:        #EEF2FA;
+    --ring-track:     #D8E0F0;
+    --accent:         #3050B8;
+    --accent-light:   #E0E8FF;
+    --c-fit:          #E03830;
+    --fit-bg:         #FFDEDD;
+    --c-die:          #208060;
+    --die-bg:         #D8F0E8;
+    --c-bea:          #3050B8;
+    --bea-bg:         #E0E8FF;
+  }
+
+  /* ══════════════════════════════════════════
+     PALETTE D — Aubergine (dark luxury)
+  ══════════════════════════════════════════ */
+  .pD {
+    --bg:             #F9F5FA;
+    --surface:        #FFFFFF;
+    --text-primary:   #1C1028;
+    --text-secondary: #806888;
+    --divider:        #EDE0F2;
+    --hero-bg:        #F4ECF8;
+    --ring-track:     #E8D4F0;
+    --accent:         #6818A8;
+    --accent-light:   #ECD8FF;
+    --c-fit:          #C82868;
+    --fit-bg:         #FFD8EC;
+    --c-die:          #207850;
+    --die-bg:         #D4EEE4;
+    --c-bea:          #6818A8;
+    --bea-bg:         #ECD8FF;
+  }
+</style>
+</head>
+<body>
+
+<h1>Palette — nuove proposte</h1>
+
+<div class="palettes-row">
+
+  <!-- A -->
+  <div class="wrap">
+    <div class="p-name">A · Rose Quartz</div>
+    <div class="p-desc">Toni rosa in tutta l'app — elegante, monomatico</div>
+    <div class="swatches">
+      <div class="sw" style="background:#C0305A"></div>
+      <div class="sw" style="background:#D04070"></div>
+      <div class="sw" style="background:#906890"></div>
+      <div class="sw" style="background:#FDF5F7"></div>
+    </div>
+    <div class="phone pA">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="top-bar">
+          <div><h2>Buongiorno!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero">
+          <div class="hero-tag">Oggi</div>
+          <div class="rings">
+            <div class="ring-w">
+              <div class="ring"><div class="ring-val">1240<span class="ring-unit">kcal</span></div></div>
+              <div class="ring-lbl">Calorie</div><div class="ring-sub">obiettivo 2000</div>
+            </div>
+            <div class="divv"></div>
+            <div class="ring-w">
+              <div class="ring" style="border-color:#DDEEFF"><div class="ring-val" style="color:#305090">1.5<span class="ring-unit">L</span></div></div>
+              <div class="ring-lbl">Acqua</div><div class="ring-sub">obiettivo 2 L</div>
+            </div>
+          </div>
+          <div class="hero-foot">
+            <span><strong>760 kcal</strong> rimaste</span>
+            <button class="btn-w">+ borraccia</button>
+          </div>
+        </div>
+        <div class="s-label">Sezioni</div>
+        <div class="sc fit">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">💪</div>Fitness</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Nessun allenamento oggi</div>
+        </div>
+        <div class="sc die">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">🥗</div>Dieta</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Colazione · 377 kcal</div>
+        </div>
+        <div class="sc bea">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">✨</div>Beauty</div><span class="sc-arr">›</span></div>
+          <span class="badge-ok">✓ Mattina completata</span>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fitness</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="wrap">
+    <div class="p-name">B · Caramel</div>
+    <div class="p-desc">Beige caldo + toffee + salvia — organic luxury</div>
+    <div class="swatches">
+      <div class="sw" style="background:#B06020"></div>
+      <div class="sw" style="background:#904060"></div>
+      <div class="sw" style="background:#5A7A30"></div>
+      <div class="sw" style="background:#FAF6F1"></div>
+    </div>
+    <div class="phone pB">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="top-bar">
+          <div><h2>Buongiorno!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero">
+          <div class="hero-tag">Oggi</div>
+          <div class="rings">
+            <div class="ring-w">
+              <div class="ring"><div class="ring-val">1240<span class="ring-unit">kcal</span></div></div>
+              <div class="ring-lbl">Calorie</div><div class="ring-sub">obiettivo 2000</div>
+            </div>
+            <div class="divv"></div>
+            <div class="ring-w">
+              <div class="ring" style="border-color:#E4EED8"><div class="ring-val" style="color:#5A7A30">1.5<span class="ring-unit">L</span></div></div>
+              <div class="ring-lbl">Acqua</div><div class="ring-sub">obiettivo 2 L</div>
+            </div>
+          </div>
+          <div class="hero-foot">
+            <span><strong>760 kcal</strong> rimaste</span>
+            <button class="btn-w">+ borraccia</button>
+          </div>
+        </div>
+        <div class="s-label">Sezioni</div>
+        <div class="sc fit">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">💪</div>Fitness</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Nessun allenamento oggi</div>
+        </div>
+        <div class="sc die">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">🥗</div>Dieta</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Colazione · 377 kcal</div>
+        </div>
+        <div class="sc bea">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">✨</div>Beauty</div><span class="sc-arr">›</span></div>
+          <span class="badge-ok">✓ Mattina completata</span>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fitness</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="wrap">
+    <div class="p-name">C · Slate</div>
+    <div class="p-desc">Bianco + blu acciaio — pulito, minimalista, neutro</div>
+    <div class="swatches">
+      <div class="sw" style="background:#3050B8"></div>
+      <div class="sw" style="background:#E03830"></div>
+      <div class="sw" style="background:#208060"></div>
+      <div class="sw" style="background:#F6F7FA"></div>
+    </div>
+    <div class="phone pC">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="top-bar">
+          <div><h2>Buongiorno!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero">
+          <div class="hero-tag">Oggi</div>
+          <div class="rings">
+            <div class="ring-w">
+              <div class="ring"><div class="ring-val">1240<span class="ring-unit">kcal</span></div></div>
+              <div class="ring-lbl">Calorie</div><div class="ring-sub">obiettivo 2000</div>
+            </div>
+            <div class="divv"></div>
+            <div class="ring-w">
+              <div class="ring" style="border-color:#D8F0E8"><div class="ring-val" style="color:#208060">1.5<span class="ring-unit">L</span></div></div>
+              <div class="ring-lbl">Acqua</div><div class="ring-sub">obiettivo 2 L</div>
+            </div>
+          </div>
+          <div class="hero-foot">
+            <span><strong>760 kcal</strong> rimaste</span>
+            <button class="btn-w">+ borraccia</button>
+          </div>
+        </div>
+        <div class="s-label">Sezioni</div>
+        <div class="sc fit">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">💪</div>Fitness</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Nessun allenamento oggi</div>
+        </div>
+        <div class="sc die">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">🥗</div>Dieta</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Colazione · 377 kcal</div>
+        </div>
+        <div class="sc bea">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">✨</div>Beauty</div><span class="sc-arr">›</span></div>
+          <span class="badge-ok">✓ Mattina completata</span>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fitness</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D -->
+  <div class="wrap">
+    <div class="p-name">D · Aubergine</div>
+    <div class="p-desc">Viola profondo + magenta + verde — ricco, premium</div>
+    <div class="swatches">
+      <div class="sw" style="background:#6818A8"></div>
+      <div class="sw" style="background:#C82868"></div>
+      <div class="sw" style="background:#207850"></div>
+      <div class="sw" style="background:#F9F5FA"></div>
+    </div>
+    <div class="phone pD">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="top-bar">
+          <div><h2>Buongiorno!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero">
+          <div class="hero-tag">Oggi</div>
+          <div class="rings">
+            <div class="ring-w">
+              <div class="ring"><div class="ring-val">1240<span class="ring-unit">kcal</span></div></div>
+              <div class="ring-lbl">Calorie</div><div class="ring-sub">obiettivo 2000</div>
+            </div>
+            <div class="divv"></div>
+            <div class="ring-w">
+              <div class="ring" style="border-color:#D4EEE4"><div class="ring-val" style="color:#207850">1.5<span class="ring-unit">L</span></div></div>
+              <div class="ring-lbl">Acqua</div><div class="ring-sub">obiettivo 2 L</div>
+            </div>
+          </div>
+          <div class="hero-foot">
+            <span><strong>760 kcal</strong> rimaste</span>
+            <button class="btn-w">+ borraccia</button>
+          </div>
+        </div>
+        <div class="s-label">Sezioni</div>
+        <div class="sc fit">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">💪</div>Fitness</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Nessun allenamento oggi</div>
+        </div>
+        <div class="sc die">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">🥗</div>Dieta</div><span class="sc-arr">›</span></div>
+          <div class="sc-sub">Colazione · 377 kcal</div>
+        </div>
+        <div class="sc bea">
+          <div class="sc-top"><div class="sc-title"><div class="sc-ico">✨</div>Beauty</div><span class="sc-arr">›</span></div>
+          <span class="badge-ok">✓ Mattina completata</span>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fitness</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 // ─── Ingredient ──────────────────────────────────────────────────────────────
 
@@ -59,12 +60,12 @@ extension MealTypeLabel on MealType {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case MealType.colazione: return '🌅';
-      case MealType.pranzo: return '☀️';
-      case MealType.cena: return '🌙';
-      case MealType.spuntino: return '🍎';
+      case MealType.colazione: return Icons.wb_twilight_rounded;
+      case MealType.pranzo: return Icons.wb_sunny_rounded;
+      case MealType.cena: return Icons.nightlight_rounded;
+      case MealType.spuntino: return Icons.apple_rounded;
     }
   }
 }

@@ -19,7 +19,7 @@ class ProductsListScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('I miei prodotti 🧴')),
+      appBar: AppBar(title: const Text('I miei prodotti')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -105,14 +105,14 @@ class _ProductCard extends StatelessWidget {
                         product.imageUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
-                            Center(child: Text(product.emoji, style: const TextStyle(fontSize: 24))),
+                            Center(child: Icon(product.icon, size: 24, color: product.category.fgColor)),
                         loadingBuilder: (_, child, progress) => progress == null
                             ? child
                             : Center(child: Text(product.emoji, style: const TextStyle(fontSize: 24))),
                       ),
                     )
                   : Center(
-                      child: Text(product.emoji, style: const TextStyle(fontSize: 24)),
+                      child: Icon(product.icon, size: 24, color: product.category.fgColor),
                     ),
             ),
             const SizedBox(width: 14),
