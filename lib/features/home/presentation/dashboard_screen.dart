@@ -44,7 +44,7 @@ class DashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$greeting! 👋',
+                        '$greeting!',
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                       ),
                       Text(
@@ -77,7 +77,7 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('🔥 Calorie oggi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        const Text('Calorie oggi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                         GestureDetector(
                           onTap: () => context.go('/fitness'),
                           child: Text('Dettaglio →', style: TextStyle(fontSize: 12, color: AppColors.fitnessDark)),
@@ -98,10 +98,10 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _KcalStat('🎯', 'Obiettivo', '$targetKcal'),
-                        _KcalStat('🏋️', 'Bruciato', '${calories.burnedKcal}'),
-                        _KcalStat('🍽️', 'Consumato', '${calories.consumedKcal}'),
-                        _KcalStat('✅', 'Rimanenti', '$remaining'),
+                        _KcalStat(Icons.flag_rounded, 'Obiettivo', '$targetKcal'),
+                        _KcalStat(Icons.fitness_center_rounded, 'Bruciato', '${calories.burnedKcal}'),
+                        _KcalStat(Icons.restaurant_rounded, 'Consumato', '${calories.consumedKcal}'),
+                        _KcalStat(Icons.check_circle_rounded, 'Rimanenti', '$remaining'),
                       ],
                     ),
                   ],
@@ -114,7 +114,7 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('💧 Acqua oggi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    const Text('Acqua oggi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -171,28 +171,28 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   _ShortcutCard(
                     label: 'Palestra',
-                    emoji: '🏋️',
+                    icon: Icons.fitness_center_rounded,
                     color: AppColors.fitness,
                     darkColor: AppColors.fitnessDark,
                     onTap: () => context.go('/fitness'),
                   ),
                   _ShortcutCard(
                     label: 'Dieta',
-                    emoji: '🥗',
-                    color: const Color(0xFFD4F0D4),
-                    darkColor: const Color(0xFF2E7D32),
-                    onTap: () => context.go('/fitness/diet'),
+                    icon: Icons.restaurant_rounded,
+                    color: AppColors.diet,
+                    darkColor: AppColors.dietDark,
+                    onTap: () => context.go('/diet'),
                   ),
                   _ShortcutCard(
                     label: 'Beauty',
-                    emoji: '✨',
+                    icon: Icons.auto_awesome_rounded,
                     color: AppColors.beauty,
                     darkColor: AppColors.beautyDark,
                     onTap: () => context.go('/beauty'),
                   ),
                   _ShortcutCard(
                     label: 'Todo',
-                    emoji: '✅',
+                    icon: Icons.checklist_rounded,
                     color: AppColors.todo,
                     darkColor: AppColors.todoDark,
                     onTap: () => context.go('/todo'),
@@ -336,16 +336,16 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _KcalStat extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String label;
   final String value;
-  const _KcalStat(this.emoji, this.label, this.value);
+  const _KcalStat(this.icon, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        Icon(icon, size: 18, color: AppColors.fitnessDark),
         const SizedBox(height: 2),
         Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         Text(label, style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
@@ -356,11 +356,11 @@ class _KcalStat extends StatelessWidget {
 
 class _ShortcutCard extends StatelessWidget {
   final String label;
-  final String emoji;
+  final IconData icon;
   final Color color;
   final Color darkColor;
   final VoidCallback onTap;
-  const _ShortcutCard({required this.label, required this.emoji, required this.color, required this.darkColor, required this.onTap});
+  const _ShortcutCard({required this.label, required this.icon, required this.color, required this.darkColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -373,7 +373,7 @@ class _ShortcutCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
+            Icon(icon, size: 28, color: darkColor),
             Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: darkColor)),
           ],
         ),

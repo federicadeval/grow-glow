@@ -31,7 +31,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Palestra 🏋️'),
+        title: const Text('Palestra'),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.peachDark,

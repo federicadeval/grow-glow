@@ -398,7 +398,7 @@ class _KcalPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🔥 Kcal giornaliere suggerite',
+          Text('Kcal giornaliere suggerite',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,

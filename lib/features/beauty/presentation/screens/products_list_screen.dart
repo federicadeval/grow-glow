@@ -19,7 +19,7 @@ class ProductsListScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('I miei prodotti 🧴')),
+      appBar: AppBar(title: const Text('I miei prodotti')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

@@ -205,7 +205,7 @@ class _CompletedBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text('La tua pelle ti ringrazierà ✨',
+          Text('La tua pelle ti ringrazierà',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.beautyDark.withValues(alpha: 0.8),
@@ -275,7 +275,7 @@ class _StepTile extends StatelessWidget {
                   ),
             ),
             const SizedBox(width: 12),
-            Text(step.emoji, style: const TextStyle(fontSize: 24)),
+            Icon(step.icon, size: 22, color: AppColors.beautyDark),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
