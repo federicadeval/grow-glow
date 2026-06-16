@@ -52,38 +52,45 @@ const kProducts = <String, Product>{
   // ─── Sieri ────────────────────────────────────────────────────
   'vitamina_c': Product(
     id: 'vitamina_c',
-    fullName: 'L\'Oréal Revitalift Clinical Siero 12% Pura Vitamina C',
-    brand: 'L\'Oréal Paris',
+    fullName: 'Florence Bio Cosmesi Siero Viso BIO Vitamina C',
+    brand: 'Florence Bio Cosmesi',
     shortName: 'Vitamina C',
     category: ProductCategory.serum,
     description:
-        'Siero antiossidante con 12% di Vitamina C pura (acido L-ascorbico) + Vitamina E + Acido Salicilico. Formula la più concentrata di L\'Oréal, visibilmente più luminosa in 8 settimane, pori ridotti, discromie attenuate.',
+        'Siero viso biologico certificato AIAB con Vitamina C (Sodium Ascorbyl Phosphate) stabilizzata, Vitamina E, Acido Ialuronico multi-peso e Aloe Vera organica. Formula BIO antiossidante che illumina, uniforma il tono e stimola la produzione di collagene.',
     howToUse:
         '2-3 gocce su viso e collo, tampona delicatamente dal centro verso l\'esterno. Applica dopo il detergente, prima di qualsiasi crema. Solo routine mattutina.',
-    keyIngredients: ['Acido L-Ascorbico 12%', 'Vitamina E (Tocoferolo)', 'Acido Salicilico', 'Sodio Ialuronato'],
+    keyIngredients: [
+      'Sodium Ascorbyl Phosphate (Vitamina C stabilizzata)',
+      'Tocopheryl Acetate (Vitamina E)',
+      'Acido Ialuronico idrolizzato multi-peso',
+      'Aloe Barbadensis Leaf Juice (organica)',
+      'Acido Ferulico (antiossidante)',
+      'Centella Asiatica Extract',
+    ],
     emoji: '🌿',
     timing: ProductTiming.morning,
-    warnings: 'Può causare un lieve pizzicore iniziale — normale. Conservare in luogo fresco e al riparo dalla luce. Non applicare su pelle irritata. Usa SPF obbligatoriamente dopo.',
-    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2034716?\$promoMedFace\$',
+    warnings: 'Usa SPF obbligatoriamente dopo. Conservare al fresco e al riparo dalla luce. Formula BIO: agitare prima dell\'uso.',
   ),
 
   'acido_ialuronico': Product(
     id: 'acido_ialuronico',
-    fullName: 'Siero Acido Ialuronico',
-    brand: '',
-    shortName: 'Acido ialuronico',
+    fullName: 'The Inkey List Hyaluronic Acid Serum',
+    brand: 'The Inkey List',
+    shortName: 'Inkey List HA',
     category: ProductCategory.serum,
     description:
-        'Siero idratante con acido ialuronico multi-peso che agisce sia in superficie sia in profondità nell\'epidermide per un\'idratazione immediata e duratura.',
+        'Siero idratante con 2% di Acido Ialuronico puro in tre pesi molecolari (alto, medio, basso) per un\'idratazione profonda a ogni strato della pelle. Formula leggera e non appiccicosa, arricchita con Matrixyl 3000™ per ridurre visibilmente le rughe sottili.',
     howToUse:
-        'Applica sul viso leggermente umido (spruzza un po\' d\'acqua o usa dopo il toner) per massimizzare l\'assorbimento. Tampona delicatamente su viso e collo.',
+        'Applica sul viso leggermente umido dopo la detersione, prima degli altri sieri e della crema. Una quantità grande quanto un pisello basta per viso e collo. Mattina e sera.',
     keyIngredients: [
-      'Acido ialuronico alto peso molecolare (idratazione superficiale)',
-      'Acido ialuronico basso peso molecolare (rimpolpamento in profondità)',
-      'Panthenolo (Pro-vitamina B5)',
+      'Acido Ialuronico 2% (3 pesi molecolari)',
+      'Matrixyl 3000™ (Palmitoyl Tripeptide-1 + Palmitoyl Tetrapeptide-7)',
+      'Leuconostoc/Radish Root Ferment Filtrate (prebiotico)',
     ],
     emoji: '💧',
     timing: ProductTiming.both,
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2052111?\$promoMedFace\$',
   ),
 
   'revitalift': Product(
@@ -109,42 +116,48 @@ const kProducts = <String, Product>{
   // ─── Idratanti ────────────────────────────────────────────────
   'lancome': Product(
     id: 'lancome',
-    fullName: 'Lancôme Hydra Zen Crema Giorno Anti-Stress',
+    fullName: 'Lancôme Absolue Longevity The Soft Cream',
     brand: 'Lancôme',
-    shortName: 'Lancôme',
+    shortName: 'Lancôme Absolue',
     category: ProductCategory.moisturizer,
     description:
-        'Crema idratante anti-stress Lancôme con idratazione 48h. Arricchita con Rosa di Francia, Peonia Suffruticosa e Moringa per lenire, nutrire e proteggere la pelle da stress ossidativi e ambientali.',
+        'Crema anti-età di lusso con idratazione 24h. Formula con Absolue PDRN (frammenti di DNA di rosa brevettati), Pro-Xylane e Estratto di Rosa Perpetua coltivata nel Sud della Francia. Visibilmente più soda e levigata in una settimana.',
     howToUse:
-        'Ultimo step prima dell\'SPF (mattina) o ultimo step serale. Morbido strato su viso e collo con movimenti ascendenti e leggero massaggio.',
+        'Ultimo step prima dell\'SPF (mattina) o ultimo step serale. Applica un morbido strato su viso e collo con movimenti ascendenti e leggero massaggio lifting.',
     keyIngredients: [
-      'Estratto di Rosa di Francia',
-      'Peonia Suffruticosa (Mu Dan Pi)',
-      'Estratto di Moringa',
+      'Absolue PDRN (frammenti di DNA di Rosa)',
+      'Pro-Xylane (elasticità e idratazione)',
+      'Estratto di Rosa Perpetua Lancôme',
       'Glicerina',
-      'Acqua termale',
     ],
     emoji: '💜',
     timing: ProductTiming.both,
-    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2048816?\$promoMedFace\$',
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2054541?\$promoMedFace\$',
   ),
 
   // ─── SPF ──────────────────────────────────────────────────────
   'spf': Product(
     id: 'spf',
-    fullName: 'Protezione Solare SPF 50+',
-    brand: '',
-    shortName: 'SPF',
+    fullName: 'd\'alba Piedmont Waterfull Essence Sunscreen SPF 50+ PA++++',
+    brand: 'd\'alba Piedmont',
+    shortName: 'd\'alba SPF',
     category: ProductCategory.spf,
     description:
-        'Protezione solare ad ampio spettro UVA/UVB obbligatoria ogni mattina. Previene fotoinvecchiamento, macchie, danni al DNA cellulare e potenzia i risultati di tutti gli altri prodotti della routine.',
+        'Solare coreano-italiano con texture essence leggera (non lascia bianco residuo). SPF 50+ PA++++ con Trufferol™ (Tartufo Bianco + Vitamina E brevettato) antiossidante. Idrata, leviga e protegge dai raggi UVA/UVB in un unico step.',
     howToUse:
-        'Ultimo step assoluto della routine mattutina, dopo la crema idratante. Applica una quantità generosa (regola: ¼ di cucchiaino per il viso) su viso, collo e décolleté. Riapplica ogni 2 ore in caso di esposizione diretta al sole.',
-    keyIngredients: ['Filtri UV ad ampio spettro (minerali e/o chimici)'],
+        'Ultimo step assoluto della routine mattutina, dopo la crema idratante. Applica una quantità generosa (regola: ¼ di cucchiaino per il viso) su viso, collo e décolleté. Riapplica ogni 2 ore in caso di esposizione al sole.',
+    keyIngredients: [
+      'Trufferol™ (Tartufo Bianco + Vitamina E) — antiossidante brevettato',
+      'Niacinamide (Vitamina B3)',
+      'Centella Asiatica Extract',
+      'Portulaca Oleracea Extract',
+      'Filtri UV chimici (SPF 50+ PA++++)',
+    ],
     emoji: '☀️',
     timing: ProductTiming.morning,
     warnings:
         'Non saltare MAI, nemmeno in giorni nuvolosi, in inverno o al chiuso. Fondamentale se usi Retinal, acidi esfolianti o Vitamina C: senza SPF questi prodotti possono causare iperpigmentazione.',
+    imageUrl: 'https://media.ulta.com/i/ulta/pimprod2056385?\$promoMedFace\$',
   ),
 
   // ─── Esfolianti ───────────────────────────────────────────────
