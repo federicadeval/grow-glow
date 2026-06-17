@@ -46,7 +46,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _PesiTab(),
+          WorkoutPesiTab(),
           _CorsaTab(),
         ],
       ),
@@ -55,7 +55,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
 }
 
 // ─── TAB PESI ────────────────────────────────────────────────
-class _PesiTab extends StatelessWidget {
+class WorkoutPesiTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -69,7 +69,7 @@ class _PesiTab extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
-        ...builtinWorkouts.map((w) => _WorkoutCard(
+        ...builtinWorkouts.map((w) => WorkoutCard(
           workout: w,
           onTap: () => Navigator.push(
             context,
@@ -83,11 +83,11 @@ class _PesiTab extends StatelessWidget {
   }
 }
 
-class _WorkoutCard extends StatelessWidget {
+class WorkoutCard extends StatelessWidget {
   final WorkoutPlan workout;
   final VoidCallback onTap;
 
-  const _WorkoutCard({required this.workout, required this.onTap});
+  const WorkoutCard({required this.workout, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -134,17 +134,17 @@ class _WorkoutCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            _Badge(
+                            WorkoutBadge(
                               icon: Icons.timer_outlined,
                               label: workout.duration,
                             ),
                             const SizedBox(width: 8),
-                            _Badge(
+                            WorkoutBadge(
                               icon: Icons.local_fire_department_rounded,
                               label: '~${workout.estimatedKcal} kcal',
                             ),
                             const SizedBox(width: 8),
-                            _Badge(
+                            WorkoutBadge(
                               icon: Icons.fitness_center_rounded,
                               label: '${workout.exercises.length} esercizi',
                             ),
@@ -222,10 +222,10 @@ class _WorkoutCard extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
+class WorkoutBadge extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _Badge({required this.icon, required this.label});
+  const WorkoutBadge({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {

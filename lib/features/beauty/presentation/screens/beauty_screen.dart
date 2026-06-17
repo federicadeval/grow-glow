@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/section_banner.dart';
 import 'routine_detail_screen.dart';
 import 'skin_questionnaire_screen.dart';
 import 'skin_photos_screen.dart';
@@ -347,36 +348,10 @@ class _BeautyScreenState extends State<BeautyScreen> {
 class _StreakBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.heroBackground,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.auto_awesome_rounded, size: 40, color: AppColors.heroBlobB),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('La tua routine',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.heroText,
-                ),
-              ),
-              Text('Skincare personalizzata giorno per giorno',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.heroTextSecondary,
-                ),
-              ),
-            ],
-          ),
-          ),
-        ],
-      ),
+    return const SectionBanner(
+      icon: Icons.auto_awesome_rounded,
+      title: 'La tua routine',
+      subtitle: 'Skincare personalizzata giorno per giorno',
     );
   }
 }

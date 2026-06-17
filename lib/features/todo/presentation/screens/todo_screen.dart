@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/section_banner.dart';
 
 enum TodoPriority { low, medium, high }
 enum TodoCategory { personal, health, work, shopping }
@@ -86,6 +87,12 @@ class _TodoScreenState extends State<TodoScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SectionBanner(
+                    icon: Icons.checklist_rounded,
+                    title: 'Le tue attività',
+                    subtitle: 'Organizza e completa i tuoi obiettivi',
+                  ),
+                  const SizedBox(height: 20),
                   _SummaryRow(total: _todos.length, done: _completed.length),
                   const SizedBox(height: 20),
                   if (_pending.isNotEmpty) ...[

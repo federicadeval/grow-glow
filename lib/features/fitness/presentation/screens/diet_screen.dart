@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/section_banner.dart';
 import '../../../../features/profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
 import '../../data/meal_plan_provider.dart';
@@ -48,6 +49,14 @@ class _DietScreenState extends ConsumerState<DietScreen> {
       ),
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: SectionBanner(
+              icon: Icons.restaurant_rounded,
+              title: 'La tua dieta',
+              subtitle: 'Nutrizione e piani alimentari personalizzati',
+            ),
+          ),
           // Kcal summary strip
           Container(
             color: AppColors.surface,
