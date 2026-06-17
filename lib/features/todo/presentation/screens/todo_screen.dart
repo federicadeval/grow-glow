@@ -65,7 +65,6 @@ class _TodoScreenState extends State<TodoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Todo')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addTodo,
         backgroundColor: AppColors.todoDark,
@@ -73,26 +72,30 @@ class _TodoScreenState extends State<TodoScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nuovo task'),
       ),
-      body: Column(
-        children: [
-          _CategoryFilter(
-            selected: _filterCategory,
-            onSelect: (cat) => setState(() =>
-              _filterCategory = _filterCategory == cat ? null : cat,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _CategoryFilter(
+              selected: _filterCategory,
+              onSelect: (cat) => setState(() =>
+                _filterCategory = _filterCategory == cat ? null : cat,
+              ),
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionBanner(
-                    icon: Icons.checklist_rounded,
-                    title: 'Le tue attività',
-                    subtitle: 'Organizza e completa i tuoi obiettivi',
-                  ),
-                  const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SectionBanner(
+                      icon: Icons.checklist_rounded,
+                      title: 'Le tue attività',
+                      subtitle: 'Organizza e completa i tuoi obiettivi',
+                      bgColor: AppColors.todo,
+                      fgColor: AppColors.todoDark,
+                    ),
+                    const SizedBox(height: 20),
                   _SummaryRow(total: _todos.length, done: _completed.length),
                   const SizedBox(height: 20),
                   if (_pending.isNotEmpty) ...[
@@ -126,7 +129,8 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 

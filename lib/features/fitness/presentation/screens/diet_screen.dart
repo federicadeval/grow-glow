@@ -37,122 +37,150 @@ class _DietScreenState extends ConsumerState<DietScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Dieta'),
-        actions: [
-          TextButton.icon(
-            onPressed: () => _confirmGenerate(context, ref),
-            icon: const Icon(Icons.auto_awesome_rounded, size: 16),
-            label: const Text('Genera', style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: SectionBanner(
-              icon: Icons.restaurant_rounded,
-              title: 'La tua dieta',
-              subtitle: 'Nutrizione e piani alimentari personalizzati',
-            ),
-          ),
-          // Kcal summary strip
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _KcalPill(Icons.flag_rounded, 'Obiettivo', '$targetKcal'),
-                _KcalPill(Icons.restaurant_rounded, 'Consumate', '${calories.consumedKcal}'),
-                _KcalPill(Icons.fitness_center_rounded, 'Bruciate', '${calories.burnedKcal}'),
-                _KcalPill(Icons.check_circle_rounded, 'Rimanenti',
-                  '${(targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
-              ],
-            ),
-          ),
-
-          // Day selector
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
-              children: List.generate(7, (i) {
-                final isSelected = i == _selectedDay;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedDay = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.mintDark : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Colored top strip (scrolls with content) ────────
+              Container(
+                color: AppColors.diet,
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                      child: SectionBanner(
+                        icon: Icons.restaurant_rounded,
+                        title: 'Dieta',
+                        subtitle: 'Nutrizione e piani alimentari personalizzati',
+                        bgColor: AppColors.diet,
+                        fgColor: AppColors.dietDark,
                       ),
-                      child: Column(
+                    ),
+                    // Kcal summary strip
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Text(
-                            _dayLabels[i],
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected ? Colors.white : AppColors.textSecondary,
-                            ),
-                          ),
+                          _KcalPill(Icons.flag_rounded, 'Obiettivo', '$targetKcal'),
+                          _KcalPill(Icons.restaurant_rounded, 'Consumate', '${calories.consumedKcal}'),
+                          _KcalPill(Icons.fitness_center_rounded, 'Bruciate', '${calories.burnedKcal}'),
+                          _KcalPill(Icons.check_circle_rounded, 'Rimanenti',
+                            '${(targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
                         ],
                       ),
                     ),
-                  ),
-                );
-              }),
-            ),
-          ),
-
-          // Day label
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _dayNames[_selectedDay],
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                    // Day selector
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Row(
+                        children: List.generate(7, (i) {
+                          final isSelected = i == _selectedDay;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedDay = i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.dietDark : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      _dayLabels[i],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected ? Colors.white : AppColors.dietDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
                 ),
-                if (dayMeals.totalKcal > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.mint,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${dayMeals.totalKcal} kcal totali',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+              ),
 
-          // Meal cards
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: MealType.values.map((type) {
-                final meal = dayMeals.getByType(type);
-                return _MealCard(
-                  type: type,
-                  meal: meal,
-                  isToday: _isToday,
-                  onEdit: () => _openEditDialog(type, meal),
-                  onClear: meal.isEmpty ? null : () => ref.read(mealPlanProvider.notifier).clearMeal(_selectedDay, type),
-                );
-              }).toList(),
-            ),
+              // ── Scrollable content ───────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Day label + Genera button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _dayNames[_selectedDay],
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                        ),
+                        Row(
+                          children: [
+                            if (dayMeals.totalKcal > 0) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.mint,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${dayMeals.totalKcal} kcal',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mintDark),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            GestureDetector(
+                              onTap: () => _confirmGenerate(context, ref),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.dietDark,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.auto_awesome_rounded, size: 14, color: Colors.white),
+                                    SizedBox(width: 4),
+                                    Text('Genera', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Meal cards
+                    ...MealType.values.map((type) {
+                      final meal = dayMeals.getByType(type);
+                      return _MealCard(
+                        type: type,
+                        meal: meal,
+                        isToday: _isToday,
+                        onEdit: () => _openEditDialog(type, meal),
+                        onClear: meal.isEmpty ? null : () => ref.read(mealPlanProvider.notifier).clearMeal(_selectedDay, type),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

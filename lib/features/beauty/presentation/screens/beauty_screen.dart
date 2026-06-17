@@ -222,14 +222,22 @@ class _BeautyScreenState extends State<BeautyScreen> {
     final isToday = ds == dateStr(_today);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Beauty')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _StreakBanner(),
-            const SizedBox(height: 24),
+      appBar: null,
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionBanner(
+                icon: Icons.auto_awesome_rounded,
+                title: 'Beauty',
+                subtitle: 'Skincare personalizzata giorno per giorno',
+                bgColor: AppColors.beauty,
+                fgColor: AppColors.beautyDark,
+              ),
+              const SizedBox(height: 24),
 
             Text(_monthLabel(_today),
               style: Theme.of(context).textTheme.titleLarge,
@@ -339,22 +347,12 @@ class _BeautyScreenState extends State<BeautyScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 }
 
 // ─── Widgets ─────────────────────────────────────────────────
-
-class _StreakBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const SectionBanner(
-      icon: Icons.auto_awesome_rounded,
-      title: 'La tua routine',
-      subtitle: 'Skincare personalizzata giorno per giorno',
-    );
-  }
-}
 
 class _CalendarStrip extends StatefulWidget {
   final DateTime selectedDate;

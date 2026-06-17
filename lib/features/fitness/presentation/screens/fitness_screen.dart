@@ -61,161 +61,166 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Fitness')),
-      body: Column(
-        children: [
-          // ── Fixed top strip ──────────────────────────────────
-          Container(
-            color: AppColors.fitness,
-            child: Column(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
-                  child: SectionBanner(
-                    icon: Icons.fitness_center_rounded,
-                    title: 'Il tuo fitness',
-                    subtitle: 'Allenati e monitora le calorie ogni giorno',
-                  ),
-                ),
-                // Stats row
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _StatPill(Icons.fitness_center_rounded, 'Sessioni', '$_weeklySessions'),
-                      _StatPill(Icons.local_fire_department_rounded, 'Kcal bruciate', '$_weeklyKcal'),
-                      _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.suggestedKcal ?? 0}'),
-                      _StatPill(Icons.check_circle_rounded, 'Oggi', '${daily.burnedKcal}'),
-                    ],
-                  ),
-                ),
-                // Day selector
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: Row(
-                    children: List.generate(7, (i) {
-                      final isSelected = i == _selectedDay;
-                      final hasWorkout = _weekBurnedKcal[i] > 0;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedDay = i),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.peachDark : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(_dayLabels[i],
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: isSelected ? Colors.white : AppColors.fitnessDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: hasWorkout
-                                        ? (isSelected ? Colors.white : AppColors.fitnessDark)
-                                        : Colors.transparent,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Scrollable content ───────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _KcalBanner(profile: profile, daily: daily, ref: ref),
-                  const SizedBox(height: 24),
-
-                  Text('Le mie schede',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text('Tap su una scheda per avviare la sessione',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  ...builtinWorkouts.map((w) => WorkoutCard(
-                    workout: w,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => WorkoutSessionScreen(workout: w),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Colored top strip (scrolls with content) ────────
+              Container(
+                color: AppColors.fitness,
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                      child: SectionBanner(
+                        icon: Icons.fitness_center_rounded,
+                        title: 'Fitness',
+                        subtitle: 'Allenati e monitora le calorie ogni giorno',
+                        bgColor: AppColors.fitness,
+                        fgColor: AppColors.fitnessDark,
                       ),
-                    ).then((_) => _loadWeekData()),
-                  )),
-                  const SizedBox(height: 24),
-
-                  Text('Corsa',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => context.go('/fitness/workout'),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.mint, AppColors.sky],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                    ),
+                    // Stats row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          const Icon(Icons.directions_run_rounded, size: 36, color: AppColors.mintDark),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Couch to 5K',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: AppColors.mintDark,
-                                  ),
-                                ),
-                                Text('9 settimane · 3 sessioni/settimana · da 0 a 5 km',
-                                  style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.8)),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(Icons.arrow_forward_ios_rounded, color: AppColors.mintDark, size: 16),
+                          _StatPill(Icons.fitness_center_rounded, 'Sessioni', '$_weeklySessions'),
+                          _StatPill(Icons.local_fire_department_rounded, 'Kcal bruciate', '$_weeklyKcal'),
+                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.suggestedKcal ?? 0}'),
+                          _StatPill(Icons.check_circle_rounded, 'Oggi', '${daily.burnedKcal}'),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    // Day selector
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Row(
+                        children: List.generate(7, (i) {
+                          final isSelected = i == _selectedDay;
+                          final hasWorkout = _weekBurnedKcal[i] > 0;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedDay = i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.fitnessDark : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(_dayLabels[i],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected ? Colors.white : AppColors.fitnessDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: hasWorkout
+                                            ? (isSelected ? Colors.white : AppColors.fitnessDark)
+                                            : Colors.transparent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+
+              // ── Scrollable content ───────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _KcalBanner(profile: profile, daily: daily, ref: ref),
+                    const SizedBox(height: 24),
+
+                    Text('Le mie schede',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Tap su una scheda per avviare la sessione',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    ...builtinWorkouts.map((w) => WorkoutCard(
+                      workout: w,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WorkoutSessionScreen(workout: w),
+                        ),
+                      ).then((_) => _loadWeekData()),
+                    )),
+                    const SizedBox(height: 24),
+
+                    Text('Corsa',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () => context.go('/fitness/workout'),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.mint, AppColors.sky],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.directions_run_rounded, size: 36, color: AppColors.mintDark),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Couch to 5K',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: AppColors.mintDark,
+                                    ),
+                                  ),
+                                  Text('9 settimane · 3 sessioni/settimana · da 0 a 5 km',
+                                    style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.8)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded, color: AppColors.mintDark, size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
