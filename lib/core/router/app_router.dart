@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -16,20 +15,6 @@ import '../../features/profile/presentation/profile_screen.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
-    redirect: (context, state) {
-      final isOnAuth = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
-      try {
-        final session = Supabase.instance.client.auth.currentSession;
-        final isAuth = session != null;
-        if (!isAuth && !isOnAuth) return '/login';
-        if (isAuth && isOnAuth) return '/';
-        return null;
-      } catch (_) {
-        // Supabase not initialized — treat as unauthenticated
-        return isOnAuth ? null : '/login';
-      }
-    },
     routes: [
       GoRoute(
         path: '/login',
