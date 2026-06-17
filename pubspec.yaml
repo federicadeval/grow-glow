@@ -10,9 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Supabase
-  supabase_flutter: ^2.5.9
-
   # State management
   flutter_riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
