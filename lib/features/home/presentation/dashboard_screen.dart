@@ -41,6 +41,8 @@ class DashboardScreen extends ConsumerWidget {
               kcalProgress: kcalProgress,
               waterL: waterL,
               onAvatarTap: () => context.push('/profile'),
+              onWaterTap: () => ref.read(waterProvider.notifier).addBottle(),
+              onWaterLongPress: () => ref.read(waterProvider.notifier).removeBottle(),
             ),
 
             // ── White peel + sections ──
@@ -125,6 +127,8 @@ class _HeroBlock extends StatelessWidget {
   final double kcalProgress;
   final double waterL;
   final VoidCallback onAvatarTap;
+  final VoidCallback onWaterTap;
+  final VoidCallback onWaterLongPress;
 
   const _HeroBlock({
     required this.greeting,
@@ -135,6 +139,8 @@ class _HeroBlock extends StatelessWidget {
     required this.kcalProgress,
     required this.waterL,
     required this.onAvatarTap,
+    required this.onWaterTap,
+    required this.onWaterLongPress,
   });
 
   @override
@@ -231,7 +237,13 @@ class _HeroBlock extends StatelessWidget {
                     children: [
                       Expanded(child: _StatPill(value: '$consumedKcal', label: 'kcal', sub: 'di $targetKcal')),
                       const SizedBox(width: 8),
-                      Expanded(child: _StatPill(value: waterL.toStringAsFixed(1), label: 'litri', sub: 'di 2 L')),
+                      Expanded(child: _StatPill(
+                        value: waterL.toStringAsFixed(1),
+                        label: 'litri',
+                        sub: waterL >= 2.0 ? 'obiettivo ✓' : 'di 2L · tap +',
+                        onTap: onWaterTap,
+                        onLongPress: onWaterLongPress,
+                      )),
                       const SizedBox(width: 8),
                       Expanded(child: _StatPill(value: '$remaining', label: 'rimaste', sub: 'kcal')),
                     ],
@@ -278,16 +290,20 @@ class _StatPill extends StatelessWidget {
   final String value;
   final String label;
   final String sub;
-  const _StatPill({required this.value, required this.label, required this.sub});
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  const _StatPill({required this.value, required this.label, required this.sub, this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final pill = Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: onTap != null
+            ? Colors.white.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: onTap != null ? 0.25 : 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -305,6 +321,8 @@ class _StatPill extends StatelessWidget {
         ],
       ),
     );
+    if (onTap == null && onLongPress == null) return pill;
+    return GestureDetector(onTap: onTap, onLongPress: onLongPress, child: pill);
   }
 }
 
