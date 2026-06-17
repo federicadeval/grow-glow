@@ -32,8 +32,10 @@ Future<void> main() async {
       url: SupabaseConstants.supabaseUrl,
       anonKey: SupabaseConstants.supabaseAnonKey, // ignore: deprecated_member_use
     );
+    debugPrint('Supabase initialized OK');
   } catch (e, st) {
     debugPrint('Supabase init error: $e\n$st');
+    // App continues — router handles unauthenticated state gracefully
   }
 
   runApp(

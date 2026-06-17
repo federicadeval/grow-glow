@@ -17,14 +17,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      final session = Supabase.instance.client.auth.currentSession;
-      final isAuth = session != null;
       final isOnAuth = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
-
-      if (!isAuth && !isOnAuth) return '/login';
-      if (isAuth && isOnAuth) return '/';
-      return null;
+      try {
+        final session = Supabase.instance.client.auth.currentSession;
+        final isAuth = session != null;
+        if (!isAuth && !isOnAuth) return '/login';
+        if (isAuth && isOnAuth) return '/';
+        return null;
+      } catch (_) {
+        // Supabase not initialized — treat as unauthenticated
+        return isOnAuth ? null : '/login';
+      }
     },
     routes: [
       GoRoute(
