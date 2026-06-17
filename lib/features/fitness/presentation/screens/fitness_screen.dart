@@ -66,7 +66,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
         children: [
           // ── Fixed top strip ──────────────────────────────────
           Container(
-            color: AppColors.surface,
+            color: AppColors.fitness,
             child: Column(
               children: [
                 const Padding(
@@ -115,7 +115,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                                    color: isSelected ? Colors.white : AppColors.fitnessDark,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -125,7 +125,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: hasWorkout
-                                        ? (isSelected ? Colors.white : AppColors.peachDark)
+                                        ? (isSelected ? Colors.white : AppColors.fitnessDark)
                                         : Colors.transparent,
                                   ),
                                 ),
@@ -233,13 +233,13 @@ class _StatPill extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: AppColors.peachDark),
+        Icon(icon, size: 18, color: AppColors.fitnessDark),
         const SizedBox(height: 2),
         Text(value,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.fitnessDark),
         ),
         Text(label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 10, color: AppColors.fitnessDark.withValues(alpha: 0.7)),
         ),
       ],
     );
