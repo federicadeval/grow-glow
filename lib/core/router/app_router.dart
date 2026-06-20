@@ -11,6 +11,7 @@ import '../../features/beauty/presentation/screens/beauty_screen.dart';
 import '../../features/beauty/presentation/screens/routine_detail_screen.dart';
 import '../../features/todo/presentation/screens/todo_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/supplements/presentation/screens/supplement_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -64,6 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/todo',
             builder: (context, state) => const TodoScreen(),
+          ),
+          GoRoute(
+            path: '/supplements',
+            builder: (context, state) => const SupplementScreen(),
           ),
         ],
       ),
