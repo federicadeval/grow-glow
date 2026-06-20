@@ -29,10 +29,38 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>grow_glow</title>
+  <title>Grow &amp; Glow</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    #barcode-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.85);
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    #barcode-overlay.active { display: flex; }
+    #barcode-video {
+      width: min(90vw, 400px); border-radius: 16px;
+      border: 3px solid #3DAA82;
+    }
+    #barcode-close {
+      margin-top: 20px; padding: 12px 32px;
+      background: #fff; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 700; cursor: pointer; color: #2D2D2D;
+    }
+    #barcode-hint {
+      color: #fff; margin-top: 12px; font-size: 14px; font-family: sans-serif;
+    }
+  </style>
 </head>
 <body>
+  <div id="barcode-overlay">
+    <video id="barcode-video" autoplay playsinline muted></video>
+    <p id="barcode-hint">Inquadra il codice a barre</p>
+    <button id="barcode-close" onclick="window.stopBarcodeScanner()">Annulla</button>
+  </div>
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="barcode_scanner.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

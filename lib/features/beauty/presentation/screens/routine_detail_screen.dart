@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'beauty_screen.dart';
+import 'product_detail_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
   final String routineId;
-  const RoutineDetailScreen({super.key, required this.routineId});
+  final DateTime? date;
+  const RoutineDetailScreen({super.key, required this.routineId, this.date});
 
   @override
   State<RoutineDetailScreen> createState() => _RoutineDetailScreenState();
@@ -31,20 +34,38 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
 
   bool get _allDone => _completed.isNotEmpty && _completed.every((c) => c);
 
+  String get _prefsKey =>
+      'routine_completion_${widget.routineId}_${dateStr(widget.date ?? DateTime.now())}';
+
   @override
   void initState() {
     super.initState();
-    _initCompleted();
+    _completed = List<bool>.filled(_steps.length, false);
+    _loadCompleted();
   }
 
   @override
   void didUpdateWidget(RoutineDetailScreen old) {
     super.didUpdateWidget(old);
-    if (old.routineId != widget.routineId) _initCompleted();
+    if (old.routineId != widget.routineId) {
+      _completed = List<bool>.filled(_steps.length, false);
+      _loadCompleted();
+    }
   }
 
-  void _initCompleted() {
-    _completed = List<bool>.filled(_steps.length, false);
+  Future<void> _loadCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_prefsKey);
+    if (saved != null && saved.length == _steps.length) {
+      setState(() {
+        _completed = saved.split('').map((c) => c == '1').toList();
+      });
+    }
+  }
+
+  Future<void> _saveCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, _completed.map((c) => c ? '1' : '0').join());
   }
 
   @override
@@ -67,7 +88,15 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                     step: _steps[i],
                     index: i + 1,
                     isCompleted: _completed[i],
-                    onToggle: () => setState(() => _completed[i] = !_completed[i]),
+                    onToggle: () {
+                      setState(() => _completed[i] = !_completed[i]);
+                      _saveCompleted();
+                    },
+                    onInfo: _steps[i].productId != null ? () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => ProductDetailScreen(productId: _steps[i].productId!),
+                      ));
+                    } : null,
                   )),
                 ],
               ),
@@ -81,11 +110,14 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => setState(() {
-                      for (int i = 0; i < _completed.length; i++) {
-                        _completed[i] = true;
-                      }
-                    }),
+                    onPressed: () {
+                      setState(() {
+                        for (int i = 0; i < _completed.length; i++) {
+                          _completed[i] = true;
+                        }
+                      });
+                      _saveCompleted();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.beautyDark,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -165,7 +197,7 @@ class _CompletedBanner extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('🎉', style: TextStyle(fontSize: 36)),
+          const Icon(Icons.celebration_rounded, size: 36, color: AppColors.beautyDark),
           const SizedBox(height: 8),
           Text('Routine completata!',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -173,7 +205,7 @@ class _CompletedBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text('La tua pelle ti ringrazierà ✨',
+          Text('La tua pelle ti ringrazierà',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.beautyDark.withValues(alpha: 0.8),
@@ -190,12 +222,14 @@ class _StepTile extends StatelessWidget {
   final int index;
   final bool isCompleted;
   final VoidCallback onToggle;
+  final VoidCallback? onInfo;
 
   const _StepTile({
     required this.step,
     required this.index,
     required this.isCompleted,
     required this.onToggle,
+    this.onInfo,
   });
 
   @override
@@ -205,7 +239,7 @@ class _StepTile extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
         decoration: BoxDecoration(
           color: isCompleted ? AppColors.beauty : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -218,7 +252,7 @@ class _StepTile extends StatelessWidget {
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Numero / check
             AnimatedContainer(
@@ -241,7 +275,7 @@ class _StepTile extends StatelessWidget {
                   ),
             ),
             const SizedBox(width: 12),
-            Text(step.emoji, style: const TextStyle(fontSize: 24)),
+            Icon(step.icon, size: 22, color: AppColors.beautyDark),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -266,6 +300,21 @@ class _StepTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (onInfo != null)
+              GestureDetector(
+                onTap: onInfo,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    size: 20,
+                    color: isCompleted
+                        ? AppColors.beautyDark.withValues(alpha: 0.5)
+                        : AppColors.beautyDark.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

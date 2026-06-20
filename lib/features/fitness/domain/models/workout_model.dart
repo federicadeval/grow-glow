@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Exercise {
   final String name;
   final int sets;
@@ -17,7 +19,7 @@ class Exercise {
 class WorkoutPlan {
   final String id;
   final String name;
-  final String emoji;
+  final IconData icon;
   final String duration;
   final int estimatedKcal;
   final List<Exercise> exercises;
@@ -25,7 +27,7 @@ class WorkoutPlan {
   const WorkoutPlan({
     required this.id,
     required this.name,
-    required this.emoji,
+    required this.icon,
     required this.duration,
     required this.estimatedKcal,
     required this.exercises,
@@ -36,7 +38,7 @@ final List<WorkoutPlan> builtinWorkouts = [
   WorkoutPlan(
     id: 'full_body_a',
     name: 'Full Body Forza',
-    emoji: '💪',
+    icon: Icons.fitness_center_rounded,
     duration: '35 min',
     estimatedKcal: 250,
     exercises: [
@@ -50,7 +52,7 @@ final List<WorkoutPlan> builtinWorkouts = [
   WorkoutPlan(
     id: 'full_body_b',
     name: 'Full Body Ipertrofia',
-    emoji: '🔥',
+    icon: Icons.local_fire_department_rounded,
     duration: '40 min',
     estimatedKcal: 270,
     exercises: [
@@ -64,7 +66,7 @@ final List<WorkoutPlan> builtinWorkouts = [
   WorkoutPlan(
     id: 'full_body_c',
     name: 'Full Body Tonificante',
-    emoji: '🌸',
+    icon: Icons.spa_rounded,
     duration: '35 min',
     estimatedKcal: 230,
     exercises: [

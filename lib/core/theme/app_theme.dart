@@ -2,34 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Pastels primari
-  static const Color lavender = Color(0xFFE8D5F5);
-  static const Color peach = Color(0xFFFFE4D6);
-  static const Color mint = Color(0xFFD4F0E8);
-  static const Color blush = Color(0xFFFFD6E0);
-  static const Color sky = Color(0xFFD6EEFF);
-  static const Color cream = Color(0xFFFFF8F0);
+  // Hero (dark section)
+  static const Color heroBackground    = Color(0xFF1D2B2C);
+  static const Color heroBlobA         = Color(0xFF2E4A40);
+  static const Color heroBlobB         = Color(0xFF749080);
+  static const Color heroAccent        = Color(0xFFC8BC88);
+  static const Color heroText          = Color(0xFFF0EAE0);
+  static const Color heroTextSecondary = Color(0xFF8A9890);
 
-  // Accenti
-  static const Color lavenderDark = Color(0xFF9B6BC5);
-  static const Color peachDark = Color(0xFFE8855A);
-  static const Color mintDark = Color(0xFF3DAA82);
-  static const Color blushDark = Color(0xFFE05C7A);
-
-  // Neutri
-  static const Color background = Color(0xFFFDF9F7);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF2D2D2D);
-  static const Color textSecondary = Color(0xFF8A8A8A);
-  static const Color divider = Color(0xFFEEEEEE);
+  // App background
+  static const Color background    = Color(0xFFFDFAF6);
+  static const Color surface       = Color(0xFFFFFFFF);
+  static const Color textPrimary   = Color(0xFF1D2B2C);
+  static const Color textSecondary = Color(0xFF8A9890);
+  static const Color divider       = Color(0xFFEDE4D8);
 
   // Feature colors
-  static const Color fitness = Color(0xFFFFD6C2);
-  static const Color fitnessDark = Color(0xFFE8724A);
-  static const Color beauty = Color(0xFFE8D5F5);
-  static const Color beautyDark = Color(0xFF9B6BC5);
-  static const Color todo = Color(0xFFD4F0E8);
-  static const Color todoDark = Color(0xFF3DAA82);
+  static const Color fitness     = Color(0xFFE2CAC0);
+  static const Color fitnessDark = Color(0xFF4A2018);
+  static const Color diet        = Color(0xFFB8C4D4);
+  static const Color dietDark    = Color(0xFF1A2848);
+  static const Color beauty      = Color(0xFF9DB0A4);
+  static const Color beautyDark  = Color(0xFF1A3028);
+  static const Color todo             = Color(0xFFD8CE9C);
+  static const Color todoDark         = Color(0xFF3A2E08);
+  static const Color supplement       = Color(0xFFD4C8E0);
+  static const Color supplementDark   = Color(0xFF3A2458);
+
+  // Aliases for backward compat (used in many screens)
+  static const Color lavender     = Color(0xFF9DB0A4);
+  static const Color lavenderDark = Color(0xFF1A3028);
+  static const Color peach        = Color(0xFFE2CAC0);
+  static const Color peachDark    = Color(0xFF4A2018);
+  static const Color mint         = Color(0xFF9DB0A4);
+  static const Color mintDark     = Color(0xFF1A3028);
+  static const Color blush        = Color(0xFFB8C4D4);
+  static const Color blushDark    = Color(0xFF1A2848);
+  static const Color sky          = Color(0xFFB8C4D4);
+  static const Color cream        = Color(0xFFFDFAF6);
 }
 
 class AppTheme {
@@ -37,7 +47,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.lavenderDark,
+        seedColor: AppColors.heroBlobB,
         brightness: Brightness.light,
         surface: AppColors.surface,
       ),

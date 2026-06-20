@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3 Palette — Salvia · Blu · Tiffany</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0e0e16;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 52px;
+  }
+  h1   { color: #fff; font-size: 20px; font-weight: 700; text-align: center; }
+  .sub { color: #666; font-size: 11px; text-align: center; margin-top: 6px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── Phone ── */
+  .phone {
+    width: 300px; border-radius: 40px; overflow: hidden;
+    box-shadow: 0 28px 64px rgba(0,0,0,0.7);
+    border: 7px solid #1e1e1e;
+  }
+  .notch { width: 90px; height: 20px; background: #1e1e1e; border-radius: 0 0 14px 14px; margin: 0 auto; }
+
+  /* ── Hero ── */
+  .hero-block {
+    padding: 18px 18px 30px;
+    position: relative; overflow: hidden; min-height: 210px;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; opacity: 0.3;
+    pointer-events: none;
+  }
+  .hero-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .hero-header h2 { font-size: 20px; font-weight: 800; line-height: 1.2; }
+  .hero-header p  { font-size: 10px; margin-top: 2px; opacity: 0.7; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; flex-shrink: 0;
+  }
+  .hero-stats {
+    display: flex; gap: 8px; margin-top: 16px;
+    position: relative; z-index: 2;
+  }
+  .stat-pill {
+    flex: 1; background: rgba(255,255,255,0.25);
+    border-radius: 14px; padding: 9px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+  }
+  .stat-val { font-size: 17px; font-weight: 800; line-height: 1; }
+  .stat-lbl { font-size: 8px; opacity: 0.75; font-weight: 600; margin-top: 1px; }
+  .stat-sub { font-size: 8px; opacity: 0.5; }
+  .hero-prog { margin-top: 14px; position: relative; z-index: 2; }
+  .prog-bar  { height: 5px; background: rgba(255,255,255,0.25); border-radius: 10px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 10px; background: rgba(255,255,255,0.65); width: 62%; }
+  .prog-meta { display: flex; justify-content: space-between; font-size: 9px; opacity: 0.65; margin-top: 4px; }
+
+  /* ── Cards peel ── */
+  .cards-wrap {
+    border-radius: 24px 24px 0 0;
+    margin-top: -16px; position: relative; z-index: 3;
+    padding: 18px 14px 10px;
+  }
+  .section-hdr {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  }
+  .section-hdr strong { font-size: 12px; font-weight: 800; }
+  .section-hdr a     { font-size: 10px; font-weight: 600; opacity: 0.6; }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card {
+    border-radius: 18px; padding: 13px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .card-ico {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: rgba(255,255,255,0.45);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .card-name { font-size: 12px; font-weight: 800; }
+  .card-info { font-size: 9px; opacity: 0.65; line-height: 1.3; }
+  .card-badge {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.4); border-radius: 7px;
+    padding: 2px 8px; font-size: 8px; font-weight: 700;
+  }
+
+  /* ── Bottom nav ── */
+  .bnav {
+    padding: 8px 10px 14px; border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex; gap: 2px;
+  }
+  .ni {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 5px 3px; border-radius: 11px;
+    font-size: 8px; font-weight: 600;
+  }
+  .ni.on {
+    flex-direction: row; justify-content: center; gap: 4px;
+    font-size: 9px; font-weight: 800;
+  }
+  .ni-ico { font-size: 14px; }
+
+  /* ── label ── */
+  .wrap  { display: flex; flex-direction: column; align-items: center; }
+  .pname { color: #fff; font-size: 15px; font-weight: 800; margin-bottom: 6px; text-align: center; }
+  .pdesc { color: #888; font-size: 10px; margin-bottom: 14px; text-align: center; }
+  .swrow { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+  .sw    { width: 26px; height: 26px; border-radius: 50%; }
+
+  /* ════════════════════════════════
+     1 — VERDE SALVIA
+  ════════════════════════════════ */
+  .vs .hero-block { background: linear-gradient(145deg, #7AA882 0%, #9DC4A0 55%, #BEDAB0 100%); color: #163020; }
+  .vs .blob-a { width:170px; height:170px; background:#4E8860; bottom:-50px; right:-50px; }
+  .vs .blob-b { width: 80px; height: 80px;  background:#C4E890; top:15px;    left:-20px; }
+  .vs .cards-wrap { background: #F5F8F4; }
+  .vs .section-hdr strong { color: #1A3020; }
+  .vs .section-hdr a      { color: #3A7048; }
+  .vs .card.c1 { background: #B8D8A8; color: #1E5020; }
+  .vs .card.c2 { background: #D4B8E8; color: #5C20A0; }
+  .vs .card.c3 { background: #F4C8A0; color: #7C3800; }
+  .vs .card.c4 { background: #A8D4C8; color: #0C5048; }
+  .vs .bnav  { background: #F5F8F4; }
+  .vs .ni    { color: #6A9870; }
+  .vs .ni.on { background: #B0D4A8; color: #1E5020; }
+
+  /* ════════════════════════════════
+     2 — BLU
+  ════════════════════════════════ */
+  .bl .hero-block { background: linear-gradient(145deg, #6888C8 0%, #88A8E0 55%, #A8C0F0 100%); color: #0C1C50; }
+  .bl .blob-a { width:170px; height:170px; background:#3860B8; bottom:-50px; right:-50px; }
+  .bl .blob-b { width: 80px; height: 80px;  background:#C0D0FF; top:15px;    left:-20px; }
+  .bl .cards-wrap { background: #F4F6FC; }
+  .bl .section-hdr strong { color: #0C1C50; }
+  .bl .section-hdr a      { color: #2848B0; }
+  .bl .card.c1 { background: #F4B8A8; color: #8C2808; }
+  .bl .card.c2 { background: #A8D0B8; color: #1A5830; }
+  .bl .card.c3 { background: #B8C8F0; color: #1838A0; }
+  .bl .card.c4 { background: #F0D4A8; color: #784800; }
+  .bl .bnav  { background: #F4F6FC; }
+  .bl .ni    { color: #6888C0; }
+  .bl .ni.on { background: #B8C8F0; color: #1838A0; }
+
+  /* ════════════════════════════════
+     3 — TIFFANY
+  ════════════════════════════════ */
+  .tf .hero-block { background: linear-gradient(145deg, #68C4C0 0%, #88D8D4 55%, #A8E8E4 100%); color: #083830; }
+  .tf .blob-a { width:170px; height:170px; background:#30A0A0; bottom:-50px; right:-50px; }
+  .tf .blob-b { width: 80px; height: 80px;  background:#C0F0E8; top:15px;    left:-20px; }
+  .tf .cards-wrap { background: #F3FAFA; }
+  .tf .section-hdr strong { color: #083830; }
+  .tf .section-hdr a      { color: #107070; }
+  .tf .card.c1 { background: #F4B8B0; color: #8C2020; }
+  .tf .card.c2 { background: #D4B8E8; color: #5C20A0; }
+  .tf .card.c3 { background: #A8DCD8; color: #0A5858; }
+  .tf .card.c4 { background: #F0D0A8; color: #785000; }
+  .tf .bnav  { background: #F3FAFA; }
+  .tf .ni    { color: #50A0A0; }
+  .tf .ni.on { background: #A8DCD8; color: #0A5858; }
+</style>
+</head>
+<body>
+
+<h1>Verde Salvia · Blu · Tiffany</h1>
+<p class="sub">Stile editoriale — stesso layout, 3 colori hero diversi</p>
+
+<div class="row">
+
+  <!-- ── VERDE SALVIA ── -->
+  <div class="wrap">
+    <div class="pname">Verde Salvia</div>
+    <div class="pdesc">#7AA882 → #BEDAB0</div>
+    <div class="swrow">
+      <div class="sw" style="background:#7AA882"></div>
+      <div class="sw" style="background:#B8D8A8"></div>
+      <div class="sw" style="background:#D4B8E8"></div>
+      <div class="sw" style="background:#F4C8A0"></div>
+      <div class="sw" style="background:#A8D4C8"></div>
+    </div>
+    <div class="phone vs">
+      <div class="notch"></div>
+      <div class="hero-block">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="hero-header">
+          <div><h2>Buongiorno,<br>Federica!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-pill"><div class="stat-val">1240</div><div class="stat-lbl">kcal</div><div class="stat-sub">/ 2000</div></div>
+          <div class="stat-pill"><div class="stat-val">1.5</div><div class="stat-lbl">litri</div><div class="stat-sub">/ 2 L</div></div>
+          <div class="stat-pill"><div class="stat-val">12</div><div class="stat-lbl">streak</div><div class="stat-sub">giorni</div></div>
+        </div>
+        <div class="hero-prog">
+          <div class="prog-bar"><div class="prog-fill"></div></div>
+          <div class="prog-meta"><span>Calorie oggi</span><span>760 rimaste</span></div>
+        </div>
+      </div>
+      <div class="cards-wrap">
+        <div class="section-hdr"><strong>Le sezioni</strong><a>Vedi tutto</a></div>
+        <div class="card-grid">
+          <div class="card c1"><div class="card-ico">💪</div><div class="card-name">Fitness</div><div class="card-info">Nessun allenamento</div></div>
+          <div class="card c2"><div class="card-ico">✨</div><div class="card-name">Beauty</div><div class="card-badge">✓ Mattina OK</div></div>
+          <div class="card c3"><div class="card-ico">🥗</div><div class="card-name">Dieta</div><div class="card-info">377 kcal registrate</div></div>
+          <div class="card c4"><div class="card-ico">✅</div><div class="card-name">Todo</div><div class="card-info">3 task aperti</div></div>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fit</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BLU ── -->
+  <div class="wrap">
+    <div class="pname">Blu</div>
+    <div class="pdesc">#6888C8 → #A8C0F0</div>
+    <div class="swrow">
+      <div class="sw" style="background:#6888C8"></div>
+      <div class="sw" style="background:#F4B8A8"></div>
+      <div class="sw" style="background:#A8D0B8"></div>
+      <div class="sw" style="background:#B8C8F0"></div>
+      <div class="sw" style="background:#F0D4A8"></div>
+    </div>
+    <div class="phone bl">
+      <div class="notch"></div>
+      <div class="hero-block">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="hero-header">
+          <div><h2>Buongiorno,<br>Federica!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-pill"><div class="stat-val">1240</div><div class="stat-lbl">kcal</div><div class="stat-sub">/ 2000</div></div>
+          <div class="stat-pill"><div class="stat-val">1.5</div><div class="stat-lbl">litri</div><div class="stat-sub">/ 2 L</div></div>
+          <div class="stat-pill"><div class="stat-val">12</div><div class="stat-lbl">streak</div><div class="stat-sub">giorni</div></div>
+        </div>
+        <div class="hero-prog">
+          <div class="prog-bar"><div class="prog-fill"></div></div>
+          <div class="prog-meta"><span>Calorie oggi</span><span>760 rimaste</span></div>
+        </div>
+      </div>
+      <div class="cards-wrap">
+        <div class="section-hdr"><strong>Le sezioni</strong><a>Vedi tutto</a></div>
+        <div class="card-grid">
+          <div class="card c1"><div class="card-ico">💪</div><div class="card-name">Fitness</div><div class="card-info">Nessun allenamento</div></div>
+          <div class="card c2"><div class="card-ico">✨</div><div class="card-name">Beauty</div><div class="card-badge">✓ Mattina OK</div></div>
+          <div class="card c3"><div class="card-ico">🥗</div><div class="card-name">Dieta</div><div class="card-info">377 kcal registrate</div></div>
+          <div class="card c4"><div class="card-ico">✅</div><div class="card-name">Todo</div><div class="card-info">3 task aperti</div></div>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fit</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TIFFANY ── -->
+  <div class="wrap">
+    <div class="pname">Tiffany</div>
+    <div class="pdesc">#68C4C0 → #A8E8E4</div>
+    <div class="swrow">
+      <div class="sw" style="background:#68C4C0"></div>
+      <div class="sw" style="background:#F4B8B0"></div>
+      <div class="sw" style="background:#D4B8E8"></div>
+      <div class="sw" style="background:#A8DCD8"></div>
+      <div class="sw" style="background:#F0D0A8"></div>
+    </div>
+    <div class="phone tf">
+      <div class="notch"></div>
+      <div class="hero-block">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="hero-header">
+          <div><h2>Buongiorno,<br>Federica!</h2><p>martedì 16 giugno</p></div>
+          <div class="avatar">F</div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-pill"><div class="stat-val">1240</div><div class="stat-lbl">kcal</div><div class="stat-sub">/ 2000</div></div>
+          <div class="stat-pill"><div class="stat-val">1.5</div><div class="stat-lbl">litri</div><div class="stat-sub">/ 2 L</div></div>
+          <div class="stat-pill"><div class="stat-val">12</div><div class="stat-lbl">streak</div><div class="stat-sub">giorni</div></div>
+        </div>
+        <div class="hero-prog">
+          <div class="prog-bar"><div class="prog-fill"></div></div>
+          <div class="prog-meta"><span>Calorie oggi</span><span>760 rimaste</span></div>
+        </div>
+      </div>
+      <div class="cards-wrap">
+        <div class="section-hdr"><strong>Le sezioni</strong><a>Vedi tutto</a></div>
+        <div class="card-grid">
+          <div class="card c1"><div class="card-ico">💪</div><div class="card-name">Fitness</div><div class="card-info">Nessun allenamento</div></div>
+          <div class="card c2"><div class="card-ico">✨</div><div class="card-name">Beauty</div><div class="card-badge">✓ Mattina OK</div></div>
+          <div class="card c3"><div class="card-ico">🥗</div><div class="card-name">Dieta</div><div class="card-info">377 kcal registrate</div></div>
+          <div class="card c4"><div class="card-ico">✅</div><div class="card-name">Todo</div><div class="card-info">3 task aperti</div></div>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="ni"><div class="ni-ico">🏠</div>Home</div>
+        <div class="ni"><div class="ni-ico">💪</div>Fit</div>
+        <div class="ni"><div class="ni-ico">🥗</div>Dieta</div>
+        <div class="ni on"><div class="ni-ico">✨</div>Beauty</div>
+        <div class="ni"><div class="ni-ico">✅</div>Todo</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

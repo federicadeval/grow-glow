@@ -18,6 +18,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late double _weightKg;
   late double _heightCm;
   late FitnessGoal _goal;
+  late DietStyle _dietStyle;
+  late List<String> _intolerances;
+  late TextEditingController _foodsToAvoidCtrl;
 
   bool _initialized = false;
 
@@ -27,7 +30,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _weightKg = p.weightKg;
     _heightCm = p.heightCm;
     _goal = p.goal;
+    _dietStyle = p.dietStyle;
+    _intolerances = List.from(p.intolerances);
+    _foodsToAvoidCtrl = TextEditingController(text: p.foodsToAvoid);
     _initialized = true;
+  }
+
+  @override
+  void dispose() {
+    if (_initialized) _foodsToAvoidCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,6 +56,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       weightKg: _weightKg,
       heightCm: _heightCm,
       goal: _goal,
+      dietStyle: _dietStyle,
+      intolerances: _intolerances,
+      foodsToAvoid: _foodsToAvoidCtrl.text,
     );
 
     return Scaffold(
@@ -141,6 +156,88 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
               // Macro breakdown
               _MacroCard(profile: preview),
+              const SizedBox(height: 24),
+
+              _SectionTitle('Preferenze alimentari'),
+              const SizedBox(height: 12),
+
+              _Label('Stile alimentare'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: DietStyle.values.map((d) => GestureDetector(
+                  onTap: () => setState(() => _dietStyle = d),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _dietStyle == d ? AppColors.mintDark : AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _dietStyle == d ? AppColors.mintDark : AppColors.divider),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(d.icon, size: 16, color: _dietStyle == d ? Colors.white : AppColors.textPrimary),
+                        const SizedBox(width: 6),
+                        Text(d.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: _dietStyle == d ? Colors.white : AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              _Label('Intolleranze / allergie'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: kAllIntolerances.map((intol) {
+                  final selected = _intolerances.contains(intol);
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      if (selected) _intolerances.remove(intol);
+                      else _intolerances.add(intol);
+                    }),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.peach : AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: selected ? AppColors.peachDark : AppColors.divider),
+                      ),
+                      child: Text(intol,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selected ? AppColors.peachDark : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              _Label('Altro da evitare'),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _foodsToAvoidCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Es. coriandolo, melanzane, cipolle crude…',
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: 2,
+              ),
               const SizedBox(height: 32),
 
               SizedBox(
@@ -168,6 +265,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       weightKg: _weightKg,
       heightCm: _heightCm,
       goal: _goal,
+      dietStyle: _dietStyle,
+      intolerances: List.from(_intolerances),
+      foodsToAvoid: _foodsToAvoidCtrl.text.trim(),
     );
     await ref.read(profileProvider.notifier).save(profile);
     if (mounted) {
@@ -265,7 +365,7 @@ class _GoalCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(goal.emoji, style: const TextStyle(fontSize: 28)),
+            Icon(goal.icon, size: 28, color: selected ? AppColors.peachDark : AppColors.textSecondary),
             const SizedBox(width: 14),
             Expanded(
               child: Text(goal.label,
@@ -305,7 +405,7 @@ class _KcalPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🔥 Kcal giornaliere suggerite',
+          Text('Kcal giornaliere suggerite',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -356,9 +456,9 @@ class _MacroCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _MacroItem(label: 'Proteine', value: '${profile.proteinG}g', color: AppColors.peachDark, emoji: '🥩'),
-              _MacroItem(label: 'Carboidrati', value: '${profile.carbsG}g', color: AppColors.mintDark, emoji: '🍞'),
-              _MacroItem(label: 'Grassi', value: '${profile.fatG}g', color: AppColors.lavenderDark, emoji: '🥑'),
+              _MacroItem(label: 'Proteine', value: '${profile.proteinG}g', color: AppColors.peachDark, icon: Icons.set_meal_rounded),
+              _MacroItem(label: 'Carboidrati', value: '${profile.carbsG}g', color: AppColors.mintDark, icon: Icons.grain_rounded),
+              _MacroItem(label: 'Grassi', value: '${profile.fatG}g', color: AppColors.lavenderDark, icon: Icons.opacity_rounded),
             ],
           ),
         ],
@@ -371,14 +471,14 @@ class _MacroItem extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  final String emoji;
-  const _MacroItem({required this.label, required this.value, required this.color, required this.emoji});
+  final IconData icon;
+  const _MacroItem({required this.label, required this.value, required this.color, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
+        Icon(icon, size: 24, color: color),
         const SizedBox(height: 4),
         Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color)),
         Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),

@@ -90,7 +90,7 @@ class _SkinQuestionnaireScreenState extends State<SkinQuestionnaireScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Check-up pelle 🔍')),
+      appBar: AppBar(title: const Text('Check-up pelle')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final entry = await Navigator.push<SkinCheckEntry>(
@@ -171,21 +171,21 @@ class _NewCheckScreenState extends State<_NewCheckScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _QuestionSlider(
-              label: 'Idratazione 💧',
+              label: 'Idratazione',
               sublabel: '1 = secca e tesa · 5 = super idratata',
               value: _hydration,
               onChanged: (v) => setState(() => _hydration = v),
             ),
             const SizedBox(height: 20),
             _QuestionSlider(
-              label: 'Luminosità ✨',
+              label: 'Luminosità',
               sublabel: '1 = spenta · 5 = glowing',
               value: _glow,
               onChanged: (v) => setState(() => _glow = v),
             ),
             const SizedBox(height: 20),
             _QuestionChoice(
-              label: 'Imperfezioni/brufoli 🔴',
+              label: 'Imperfezioni/brufoli',
               options: const ['Nessuna', 'Qualcuna', 'Molte'],
               selected: _blemishes - 1,
               onSelect: (i) => setState(() => _blemishes = i + 1),
@@ -205,7 +205,7 @@ class _NewCheckScreenState extends State<_NewCheckScreen> {
               onSelect: (i) => setState(() => _texture = i + 1),
             ),
             const SizedBox(height: 20),
-            Text('Note libere 📝',
+            Text('Note libere',
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 8),
@@ -266,7 +266,7 @@ class _QuestionSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emojis = ['😟', '😕', '😐', '🙂', '😍'];
+    final icons = [Icons.sentiment_very_dissatisfied_rounded, Icons.sentiment_dissatisfied_rounded, Icons.sentiment_neutral_rounded, Icons.sentiment_satisfied_rounded, Icons.sentiment_very_satisfied_rounded];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -288,7 +288,7 @@ class _QuestionSlider extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text(emojis[value - 1], style: const TextStyle(fontSize: 28)),
+              Icon(icons[value - 1], size: 28, color: AppColors.beautyDark),
               Expanded(
                 child: Slider(
                   value: value.toDouble(),
@@ -513,8 +513,8 @@ class _CheckCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              _MiniChip('💧 Idr. ${entry.hydration}/5'),
-              _MiniChip('✨ Lum. ${entry.glow}/5'),
+              _MiniChip('Idr. ${entry.hydration}/5'),
+              _MiniChip('Lum. ${entry.glow}/5'),
               _MiniChip(_blemishLabel(entry.blemishes)),
               _MiniChip(_sensitivityLabel(entry.sensitivity)),
               _MiniChip(_textureLabel(entry.texture)),
@@ -537,25 +537,25 @@ class _CheckCard extends StatelessWidget {
 
   String _blemishLabel(int v) {
     switch (v) {
-      case 1: return '🟢 Nessuna imperf.';
-      case 2: return '🟡 Qualche imperf.';
-      default: return '🔴 Molte imperf.';
+      case 1: return 'Nessuna imperf.';
+      case 2: return 'Qualche imperf.';
+      default: return 'Molte imperf.';
     }
   }
 
   String _sensitivityLabel(int v) {
     switch (v) {
-      case 1: return '🟢 No sensib.';
-      case 2: return '🟡 Sensib. lieve';
-      default: return '🔴 Sensib. forte';
+      case 1: return 'No sensib.';
+      case 2: return 'Sensib. lieve';
+      default: return 'Sensib. forte';
     }
   }
 
   String _textureLabel(int v) {
     switch (v) {
-      case 1: return '🟢 Liscia';
-      case 2: return '🟡 Normale';
-      default: return '🔴 Ruvida';
+      case 1: return 'Liscia';
+      case 2: return 'Normale';
+      default: return 'Ruvida';
     }
   }
 }
@@ -586,7 +586,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🔍', style: TextStyle(fontSize: 64)),
+            const Icon(Icons.manage_search_rounded, size: 64, color: AppColors.beautyDark),
             const SizedBox(height: 20),
             Text('Nessun check-up ancora',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
