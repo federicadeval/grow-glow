@@ -326,22 +326,6 @@ class _KcalBanner extends StatelessWidget {
                   icon: net >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded),
               ],
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showAddMealDialog(context, ref),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.mintDark),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.add_rounded, color: AppColors.mintDark, size: 18),
-                    label: const Text('Aggiungi pasto', style: TextStyle(color: AppColors.mintDark, fontSize: 13)),
-                  ),
-                ),
-              ],
-            ),
           ] else ...[
             const Text(
               'Imposta il tuo profilo per vedere le kcal giornaliere personalizzate.',
