@@ -256,10 +256,12 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       children: [
                         Icon(l.icon, size: 22, color: _loadFeel == l ? AppColors.peachDark : AppColors.textSecondary),
                         const SizedBox(width: 12),
-                        Text(l.label,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                        Expanded(
+                          child: Text(l.label,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ],
@@ -537,10 +539,12 @@ class _SuggestionsScreen extends ConsumerWidget {
 
   void _showEditWeights(BuildContext context, WidgetRef ref) {
     final weights = ref.read(workoutWeightsProvider);
-    final controllers = List.generate(workout.exercises.length, (i) {
+    final parsedWeights = List.generate(workout.exercises.length, (i) {
       final custom = weights['${workout.id}_$i'];
-      return TextEditingController(text: custom ?? workout.exercises[i].weight);
+      return _parseWeight(custom ?? workout.exercises[i].weight);
     });
+    final controllers = List.generate(workout.exercises.length, (i) =>
+        TextEditingController(text: parsedWeights[i].numericValue));
 
     showModalBottomSheet(
       context: context,
@@ -564,30 +568,56 @@ class _SuggestionsScreen extends ConsumerWidget {
               const Text('Modifica il peso per ogni esercizio',
                 style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
-              ...workout.exercises.asMap().entries.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(e.value.name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 130,
-                      child: TextField(
-                        controller: controllers[e.key],
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ...workout.exercises.asMap().entries.map((e) {
+                final parsed = parsedWeights[e.key];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (parsed.prefix != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(parsed.prefix!,
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                         ),
-                        style: const TextStyle(fontSize: 13),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(e.value.name,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 68,
+                            child: TextField(
+                              controller: controllers[e.key],
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          if (parsed.unit.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text(parsed.unit,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              )),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -595,7 +625,11 @@ class _SuggestionsScreen extends ConsumerWidget {
                   onPressed: () {
                     ref.read(workoutWeightsProvider.notifier).setWeightsForWorkout(
                       workout.id,
-                      controllers.map((c) => c.text.trim()).toList(),
+                      List.generate(workout.exercises.length, (i) {
+                        final value = controllers[i].text.trim();
+                        if (value.isEmpty) return '';
+                        return parsedWeights[i].reconstruct(value);
+                      }),
                     );
                     for (final c in controllers) c.dispose();
                     Navigator.pop(ctx);
@@ -764,6 +798,46 @@ class _SuggestionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Weight parsing helpers ──────────────────────────────────
+class _WeightParts {
+  final String numericValue;
+  final String unit;
+  final String? prefix;
+
+  const _WeightParts({required this.numericValue, required this.unit, this.prefix});
+
+  String reconstruct(String newValue) {
+    if (prefix != null) return '$prefix ($newValue $unit)';
+    if (unit.isEmpty) return newValue;
+    return '$newValue $unit';
+  }
+}
+
+_WeightParts _parseWeight(String weight) {
+  final w = weight.trim();
+  // Legacy: "Solo bilanciere (10 kg)" — strip prefix, keep number
+  final prefixMatch = RegExp(r'^.+?\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
+  if (prefixMatch != null) {
+    return _WeightParts(numericValue: prefixMatch.group(1)!, unit: prefixMatch.group(2)!);
+  }
+  // "15-20 kg" or "4-5 kg/lato" — take the upper value of the range
+  final rangeMatch = RegExp(r'^\d+(?:\.\d+)?-(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
+  if (rangeMatch != null) {
+    return _WeightParts(numericValue: rangeMatch.group(1)!, unit: rangeMatch.group(2)!);
+  }
+  // "20 kg" or "20 kg/lato"
+  final simpleMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
+  if (simpleMatch != null) {
+    return _WeightParts(numericValue: simpleMatch.group(1)!, unit: simpleMatch.group(2)!);
+  }
+  // Plain number saved from old free-text field — default unit to kg
+  final plainMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*$').firstMatch(w);
+  if (plainMatch != null) {
+    return _WeightParts(numericValue: plainMatch.group(1)!, unit: 'kg');
+  }
+  return _WeightParts(numericValue: w, unit: 'kg');
 }
 
 // ─── Widget riutilizzabile question card ─────────────────────

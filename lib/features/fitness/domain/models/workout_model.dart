@@ -42,8 +42,8 @@ final List<WorkoutPlan> builtinWorkouts = [
     duration: '35 min',
     estimatedKcal: 250,
     exercises: [
-      Exercise(name: 'Squat con bilanciere', sets: 3, reps: 8, weight: 'Solo bilanciere (10 kg)', restSeconds: 90),
-      Exercise(name: 'Panca Piana', sets: 3, reps: 8, weight: 'Solo bilanciere (10 kg)', restSeconds: 90),
+      Exercise(name: 'Squat con bilanciere', sets: 3, reps: 8, weight: '10 kg', restSeconds: 90),
+      Exercise(name: 'Panca Piana', sets: 3, reps: 8, weight: '10 kg', restSeconds: 90),
       Exercise(name: 'Stacco da terra', sets: 3, reps: 8, weight: '15-20 kg', restSeconds: 120),
       Exercise(name: 'Shoulder Press', sets: 3, reps: 10, weight: '8-10 kg', restSeconds: 90),
       Exercise(name: 'Rematore con bilanciere', sets: 3, reps: 10, weight: '10-12 kg', restSeconds: 90),
@@ -57,7 +57,7 @@ final List<WorkoutPlan> builtinWorkouts = [
     estimatedKcal: 270,
     exercises: [
       Exercise(name: 'Front Squat', sets: 3, reps: 10, weight: '10-12 kg', restSeconds: 90),
-      Exercise(name: 'Panca Inclinata', sets: 3, reps: 10, weight: 'Solo bilanciere (10 kg)', restSeconds: 90),
+      Exercise(name: 'Panca Inclinata', sets: 3, reps: 10, weight: '10 kg', restSeconds: 90),
       Exercise(name: 'Romanian Deadlift', sets: 3, reps: 10, weight: '15-20 kg', restSeconds: 90),
       Exercise(name: 'Bent-over Row', sets: 3, reps: 12, weight: '10-15 kg', restSeconds: 75),
       Exercise(name: 'Skull Crusher', sets: 3, reps: 12, weight: '6-8 kg', restSeconds: 60),
