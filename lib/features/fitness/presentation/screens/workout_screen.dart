@@ -83,50 +83,57 @@ class WorkoutPesiTab extends StatelessWidget {
   }
 }
 
-class WorkoutCard extends StatelessWidget {
+class WorkoutCard extends StatefulWidget {
   final WorkoutPlan workout;
   final VoidCallback onTap;
 
   const WorkoutCard({required this.workout, required this.onTap});
 
   @override
+  State<WorkoutCard> createState() => _WorkoutCardState();
+}
+
+class _WorkoutCardState extends State<WorkoutCard> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.peach.withValues(alpha: 0.5),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.peach.withValues(alpha: 0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header (always visible, tap to toggle) ──
+          GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.peach,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
+                borderRadius: _expanded
+                    ? const BorderRadius.vertical(top: Radius.circular(20))
+                    : BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  Icon(workout.icon, size: 32, color: AppColors.peachDark),
+                  Icon(widget.workout.icon, size: 32, color: AppColors.peachDark),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(workout.name,
+                        Text(widget.workout.name,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.peachDark,
                           ),
@@ -134,89 +141,95 @@ class WorkoutCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            WorkoutBadge(
-                              icon: Icons.timer_outlined,
-                              label: workout.duration,
-                            ),
+                            WorkoutBadge(icon: Icons.timer_outlined, label: widget.workout.duration),
                             const SizedBox(width: 8),
-                            WorkoutBadge(
-                              icon: Icons.local_fire_department_rounded,
-                              label: '~${workout.estimatedKcal} kcal',
-                            ),
+                            WorkoutBadge(icon: Icons.local_fire_department_rounded, label: '~${widget.workout.estimatedKcal} kcal'),
                             const SizedBox(width: 8),
-                            WorkoutBadge(
-                              icon: Icons.fitness_center_rounded,
-                              label: '${workout.exercises.length} esercizi',
-                            ),
+                            WorkoutBadge(icon: Icons.fitness_center_rounded, label: '${widget.workout.exercises.length} esercizi'),
                           ],
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.peachDark,
+                    size: 20,
+                  ),
                 ],
               ),
             ),
-            // Lista esercizi
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: workout.exercises.asMap().entries.map((e) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Row(
+          ),
+          // ── Expandable body ──
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            child: _expanded
+                ? Column(
                     children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: AppColors.peach,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text('${e.key + 1}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.peachDark,
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: widget.workout.exercises.asMap().entries.map((e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.peach,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text('${e.key + 1}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.peachDark,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(e.value.name,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                Text('${e.value.sets}x${e.value.reps}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.peachDark,
+                                  ),
+                                ),
+                              ],
                             ),
+                          )).toList(),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: widget.onTap,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.peachDark,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            icon: const Icon(Icons.play_arrow_rounded),
+                            label: const Text('Inizia sessione'),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(e.value.name,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                      Text('${e.value.sets}x${e.value.reps}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.peachDark,
-                        ),
-                      ),
                     ],
-                  ),
-                )).toList(),
-              ),
-            ),
-            // Bottone
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.peachDark,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('Inizia sessione'),
-                ),
-              ),
-            ),
-          ],
-        ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
