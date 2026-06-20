@@ -57,23 +57,3 @@ extension CyclePhaseData on CyclePhase {
     }
   }
 }
-
-class CycleEntry {
-  final DateTime startDate;
-  final DateTime? endDate;
-
-  const CycleEntry({required this.startDate, this.endDate});
-
-  Map<String, dynamic> toJson() => {
-    'startDate': startDate.toIso8601String(),
-    if (endDate != null) 'endDate': endDate!.toIso8601String(),
-  };
-
-  factory CycleEntry.fromJson(Map<String, dynamic> j) => CycleEntry(
-    startDate: DateTime.parse(j['startDate'] as String),
-    endDate: j['endDate'] != null ? DateTime.parse(j['endDate'] as String) : null,
-  );
-
-  CycleEntry copyWith({DateTime? endDate}) =>
-      CycleEntry(startDate: startDate, endDate: endDate ?? this.endDate);
-}
