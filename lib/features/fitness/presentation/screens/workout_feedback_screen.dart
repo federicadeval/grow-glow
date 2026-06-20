@@ -256,10 +256,12 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       children: [
                         Icon(l.icon, size: 22, color: _loadFeel == l ? AppColors.peachDark : AppColors.textSecondary),
                         const SizedBox(width: 12),
-                        Text(l.label,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                        Expanded(
+                          child: Text(l.label,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ],
