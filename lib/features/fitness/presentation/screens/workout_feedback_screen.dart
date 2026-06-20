@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/workout_weights_provider.dart';
 import '../../domain/models/workout_model.dart';
 
 class WorkoutFeedbackScreen extends StatefulWidget {
@@ -519,7 +522,7 @@ extension on _SuggestionType {
 }
 
 // ─── Schermata suggerimenti ──────────────────────────────────
-class _SuggestionsScreen extends StatelessWidget {
+class _SuggestionsScreen extends ConsumerWidget {
   final WorkoutPlan workout;
   final List<_Suggestion> suggestions;
   final int fatigue;
@@ -530,8 +533,94 @@ class _SuggestionsScreen extends StatelessWidget {
     required this.fatigue,
   });
 
+  bool get _hasWeightSuggestion => suggestions.any((s) =>
+      s.type == _SuggestionType.increase || s.type == _SuggestionType.decrease);
+
+  void _showEditWeights(BuildContext context, WidgetRef ref) {
+    final weights = ref.read(workoutWeightsProvider);
+    final controllers = List.generate(workout.exercises.length, (i) {
+      final custom = weights['${workout.id}_$i'];
+      return TextEditingController(text: custom ?? workout.exercises[i].weight);
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Aggiorna pesi — ${workout.name}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              const Text('Modifica il peso per ogni esercizio',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 20),
+              ...workout.exercises.asMap().entries.map((e) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(e.value.name,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 130,
+                      child: TextField(
+                        controller: controllers[e.key],
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ref.read(workoutWeightsProvider.notifier).setWeightsForWorkout(
+                      workout.id,
+                      controllers.map((c) => c.text.trim()).toList(),
+                    );
+                    for (final c in controllers) c.dispose();
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.peachDark,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Salva pesi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).then((_) {
+      for (final c in controllers) {
+        if (c.hasListeners) c.dispose();
+      }
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('I tuoi suggerimenti')),
       body: SingleChildScrollView(
@@ -584,16 +673,29 @@ class _SuggestionsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ...suggestions.map((s) => _SuggestionCard(suggestion: s)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            if (_hasWeightSuggestion)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showEditWeights(context, ref),
+                    icon: const Icon(Icons.monitor_weight_outlined),
+                    label: const Text('Aggiorna pesi nella scheda'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.peachDark,
+                      side: const BorderSide(color: AppColors.peachDark),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Torna alla lista schede
-                  Navigator.of(context).popUntil(
-                    (route) => route.isFirst || route.settings.name == '/fitness',
-                  );
-                },
+                onPressed: () => context.go('/fitness'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.peachDark,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -601,6 +703,7 @@ class _SuggestionsScreen extends StatelessWidget {
                 child: const Text('Torna alle schede'),
               ),
             ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

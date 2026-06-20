@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/models/workout_model.dart';
 import '../../data/calorie_provider.dart';
+import '../../data/workout_weights_provider.dart';
 import 'workout_feedback_screen.dart';
 
 class WorkoutSessionScreen extends ConsumerStatefulWidget {
@@ -238,6 +239,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                     )
                   : _ExerciseView(
                       exercise: exercise,
+                      customWeight: ref.watch(workoutWeightsProvider)['${widget.workout.id}_$_exerciseIndex'],
                       exerciseIndex: _exerciseIndex,
                       totalExercises: widget.workout.exercises.length,
                       currentSet: _setIndex,
@@ -299,6 +301,7 @@ class _GlobalProgress extends StatelessWidget {
 // ─── Vista esercizio ─────────────────────────────────────────
 class _ExerciseView extends StatelessWidget {
   final Exercise exercise;
+  final String? customWeight;
   final int exerciseIndex;
   final int totalExercises;
   final int currentSet;
@@ -307,6 +310,7 @@ class _ExerciseView extends StatelessWidget {
 
   const _ExerciseView({
     required this.exercise,
+    this.customWeight,
     required this.exerciseIndex,
     required this.totalExercises,
     required this.currentSet,
@@ -339,7 +343,7 @@ class _ExerciseView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _InfoChip(icon: Icons.repeat_rounded, label: '${exercise.reps} rip'),
-              _InfoChip(icon: Icons.monitor_weight_outlined, label: exercise.weight),
+              _InfoChip(icon: Icons.monitor_weight_outlined, label: customWeight ?? exercise.weight),
               _InfoChip(
                 icon: Icons.timer_outlined,
                 label: '${exercise.restSeconds ~/ 60}:${(exercise.restSeconds % 60).toString().padLeft(2, '0')} riposo',
