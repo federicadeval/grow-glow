@@ -318,6 +318,16 @@ class _ExerciseView extends StatelessWidget {
     required this.onComplete,
   });
 
+  static String _formatWeight(String weight) {
+    final w = weight.trim();
+    // Legacy "Solo bilanciere (10 kg)" → "10 kg"
+    final prefixMatch = RegExp(r'^.+?\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
+    if (prefixMatch != null) return '${prefixMatch.group(1)} ${prefixMatch.group(2)}';
+    // Plain saved number → "6 kg"
+    if (RegExp(r'^\d+(?:\.\d+)?$').hasMatch(w)) return '$w kg';
+    return w;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -343,7 +353,7 @@ class _ExerciseView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _InfoChip(icon: Icons.repeat_rounded, label: '${exercise.reps} rip'),
-              _InfoChip(icon: Icons.monitor_weight_outlined, label: customWeight ?? exercise.weight),
+              _InfoChip(icon: Icons.monitor_weight_outlined, label: _formatWeight(customWeight ?? exercise.weight)),
               _InfoChip(
                 icon: Icons.timer_outlined,
                 label: '${exercise.restSeconds ~/ 60}:${(exercise.restSeconds % 60).toString().padLeft(2, '0')} riposo',

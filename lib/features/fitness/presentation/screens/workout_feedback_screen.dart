@@ -817,26 +817,27 @@ class _WeightParts {
 
 _WeightParts _parseWeight(String weight) {
   final w = weight.trim();
-  // "Solo bilanciere (10 kg)"
-  final prefixMatch = RegExp(r'^(.+?)\s*\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
+  // Legacy: "Solo bilanciere (10 kg)" — strip prefix, keep number
+  final prefixMatch = RegExp(r'^.+?\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
   if (prefixMatch != null) {
-    return _WeightParts(
-      numericValue: prefixMatch.group(2)!,
-      unit: prefixMatch.group(3)!,
-      prefix: prefixMatch.group(1)!.trim(),
-    );
+    return _WeightParts(numericValue: prefixMatch.group(1)!, unit: prefixMatch.group(2)!);
   }
   // "15-20 kg" or "4-5 kg/lato" — take the upper value of the range
-  final rangeMatch = RegExp(r'^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
+  final rangeMatch = RegExp(r'^\d+(?:\.\d+)?-(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
   if (rangeMatch != null) {
-    return _WeightParts(numericValue: rangeMatch.group(2)!, unit: rangeMatch.group(3)!);
+    return _WeightParts(numericValue: rangeMatch.group(1)!, unit: rangeMatch.group(2)!);
   }
   // "20 kg" or "20 kg/lato"
   final simpleMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
   if (simpleMatch != null) {
     return _WeightParts(numericValue: simpleMatch.group(1)!, unit: simpleMatch.group(2)!);
   }
-  return _WeightParts(numericValue: w, unit: '');
+  // Plain number saved from old free-text field — default unit to kg
+  final plainMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*$').firstMatch(w);
+  if (plainMatch != null) {
+    return _WeightParts(numericValue: plainMatch.group(1)!, unit: 'kg');
+  }
+  return _WeightParts(numericValue: w, unit: 'kg');
 }
 
 // ─── Widget riutilizzabile question card ─────────────────────
