@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/workout_history_provider.dart';
 import '../../data/workout_weights_provider.dart';
 import '../../domain/models/workout_model.dart';
+import '../../domain/models/workout_session_model.dart';
 
-class WorkoutFeedbackScreen extends StatefulWidget {
+class WorkoutFeedbackScreen extends ConsumerStatefulWidget {
   final WorkoutPlan workout;
   const WorkoutFeedbackScreen({super.key, required this.workout});
 
   @override
-  State<WorkoutFeedbackScreen> createState() => _WorkoutFeedbackScreenState();
+  ConsumerState<WorkoutFeedbackScreen> createState() => _WorkoutFeedbackScreenState();
 }
 
-class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
+class _WorkoutFeedbackScreenState extends ConsumerState<WorkoutFeedbackScreen> {
   // Q1 — fatica generale (1-5)
   int? _fatigue;
 
@@ -35,6 +37,26 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
       _mood != null;
 
   void _submit() {
+    // Build weights map: exerciseName -> weight string
+    final weights = ref.read(workoutWeightsProvider);
+    final weightMap = <String, String>{};
+    for (var i = 0; i < widget.workout.exercises.length; i++) {
+      final ex = widget.workout.exercises[i];
+      weightMap[ex.name] = weights['${widget.workout.id}_$i'] ?? ex.weight;
+    }
+    ref.read(workoutHistoryProvider.notifier).addSession(WorkoutSession(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      workoutId: widget.workout.id,
+      workoutName: widget.workout.name,
+      weights: weightMap,
+      fatigue: _fatigue!,
+      loadFeel: _loadFeel!.name,
+      jointPain: _jointPain!,
+      mood: _mood!.name,
+      estimatedKcal: widget.workout.estimatedKcal,
+    ));
+
     final suggestions = _buildSuggestions();
     Navigator.pushReplacement(
       context,
