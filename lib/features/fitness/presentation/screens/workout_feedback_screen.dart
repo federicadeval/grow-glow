@@ -561,12 +561,24 @@ class _SuggestionsScreen extends ConsumerWidget {
 
   void _showEditWeights(BuildContext context, WidgetRef ref) {
     final weights = ref.read(workoutWeightsProvider);
-    final parsedWeights = List.generate(workout.exercises.length, (i) {
-      final custom = weights['${workout.id}_$i'];
-      return _parseWeight(custom ?? workout.exercises[i].weight);
-    });
-    final controllers = List.generate(workout.exercises.length, (i) =>
-        TextEditingController(text: parsedWeights[i].numericValue));
+    // Only exercises that actually have a weight (skip bodyweight '—')
+    final weightableEntries = workout.exercises.asMap().entries
+        .where((e) {
+          final w = weights['${workout.id}_${e.key}'] ?? e.value.weight;
+          return w != '—';
+        })
+        .toList();
+
+    if (weightableEntries.isEmpty) return;
+
+    final parsedWeights = {
+      for (final e in weightableEntries)
+        e.key: _parseWeight(weights['${workout.id}_${e.key}'] ?? e.value.weight),
+    };
+    final controllers = {
+      for (final e in weightableEntries)
+        e.key: TextEditingController(text: parsedWeights[e.key]!.numericValue),
+    };
 
     showModalBottomSheet(
       context: context,
@@ -590,8 +602,8 @@ class _SuggestionsScreen extends ConsumerWidget {
               const Text('Modifica il peso per ogni esercizio',
                 style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
-              ...workout.exercises.asMap().entries.map((e) {
-                final parsed = parsedWeights[e.key];
+              ...weightableEntries.map((e) {
+                final parsed = parsedWeights[e.key]!;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Column(
@@ -648,12 +660,13 @@ class _SuggestionsScreen extends ConsumerWidget {
                     ref.read(workoutWeightsProvider.notifier).setWeightsForWorkout(
                       workout.id,
                       List.generate(workout.exercises.length, (i) {
-                        final value = controllers[i].text.trim();
+                        if (!controllers.containsKey(i)) return '';
+                        final value = controllers[i]!.text.trim();
                         if (value.isEmpty) return '';
-                        return parsedWeights[i].reconstruct(value);
+                        return parsedWeights[i]!.reconstruct(value);
                       }),
                     );
-                    for (final c in controllers) c.dispose();
+                    for (final c in controllers.values) c.dispose();
                     Navigator.pop(ctx);
                   },
                   style: ElevatedButton.styleFrom(
@@ -668,7 +681,7 @@ class _SuggestionsScreen extends ConsumerWidget {
         ),
       ),
     ).then((_) {
-      for (final c in controllers) {
+      for (final c in controllers.values) {
         if (c.hasListeners) c.dispose();
       }
     });
