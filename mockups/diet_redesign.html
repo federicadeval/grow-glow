@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dieta — proposta redesign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Design tokens ──────────────────────────────────────── */
+    :root {
+      --ground:       #FDFAF6;
+      --surface:      #FFFFFF;
+      --text:         #1D2B2C;
+      --text-sec:     #8A9890;
+      --accent:       #1A2848;
+      --band:         #B8C4D4;
+      --divider:      #EDE4D8;
+      --mint:         #9DB0A4;
+      --mint-dark:    #1A3028;
+      --peach:        #E2CAC0;
+      --peach-dark:   #4A2018;
+
+      --ff-display: 'Fraunces', Georgia, serif;
+      --ff-body:    'DM Sans', system-ui, sans-serif;
+      --ff-mono:    'DM Mono', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #D6D1CA;
+      min-height: 100vh;
+      padding: 48px 20px 80px;
+      font-family: var(--ff-body);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 56px;
+    }
+
+    /* ─── Phone shell ─────────────────────────────────────────── */
+    .phone {
+      width: 390px;
+      background: var(--ground);
+      border-radius: 48px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.22),
+        0 4px 16px rgba(0,0,0,0.10),
+        inset 0 0 0 1px rgba(255,255,255,0.5);
+    }
+
+    /* ─── Status bar ──────────────────────────────────────────── */
+    .sbar {
+      background: var(--accent);
+      padding: 13px 28px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sbar-time {
+      font-family: var(--ff-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+    }
+    .sbar-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ─── Header ──────────────────────────────────────────────── */
+    .header {
+      background: var(--accent);
+      padding: 2px 24px 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-sup {
+      font-family: var(--ff-body);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .header-title {
+      font-family: var(--ff-display);
+      font-size: 38px;
+      font-weight: 300;
+      color: #fff;
+      line-height: 1;
+      letter-spacing: -0.025em;
+    }
+    .header-title em {
+      font-style: italic;
+    }
+    .header-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Day selector ────────────────────────────────────────── */
+    .day-row {
+      background: var(--accent);
+      padding: 10px 20px 18px;
+      display: flex;
+      gap: 3px;
+    }
+    .day-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 0;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .day-item.today {
+      background: rgba(255,255,255,0.12);
+    }
+    .day-ltr {
+      font-family: var(--ff-body);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    .day-item.today .day-ltr { color: rgba(255,255,255,0.85); }
+    .day-num {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+    }
+    .day-item.today .day-num { color: #fff; font-weight: 500; }
+    .day-pip {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: transparent;
+    }
+    .day-item.logged .day-pip { background: rgba(255,255,255,0.28); }
+    .day-item.today  .day-pip { background: var(--band); }
+
+    /* ─── Body area ───────────────────────────────────────────── */
+    .body-wrap { background: var(--ground); }
+
+    /* ─── Kcal card ───────────────────────────────────────────── */
+    .kcal-card-wrap {
+      padding: 20px 20px 0;
+    }
+    .kcal-card {
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--divider);
+      padding: 18px 20px 16px;
+    }
+    .kcal-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .kcal-big {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+    }
+    .kcal-big-num {
+      font-family: var(--ff-display);
+      font-size: 34px;
+      font-weight: 300;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .kcal-big-label {
+      font-family: var(--ff-body);
+      font-size: 12px;
+      color: var(--text-sec);
+      font-weight: 400;
+      padding-bottom: 3px;
+    }
+    .kcal-target {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      color: var(--text-sec);
+      padding-bottom: 2px;
+    }
+
+    /* Horizontal gauge */
+    .gauge-track {
+      height: 5px;
+      background: var(--divider);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #2A5040 0%, var(--mint) 100%);
+      width: 0;
+      transition: width 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .gauge-fill.loaded { width: 44.9%; }
+
+    /* Three-stat row */
+    .stat-row {
+      display: flex;
+      align-items: stretch;
+    }
+    .stat-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .stat-val {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .stat-val.burned { color: var(--mint-dark); }
+    .stat-lbl {
+      font-family: var(--ff-body);
+      font-size: 10px;
+      color: var(--text-sec);
+      font-weight: 400;
+    }
+    .stat-divider {
+      width: 1px;
+      background: var(--divider);
+      margin: 2px 0;
+    }
+
+    /* ─── Meals list ──────────────────────────────────────────── */
+    .meals-wrap {
+      padding: 16px 20px 0;
+    }
+
+    .meal-section { }
+
+    .meal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0 8px;
+    }
+    .meal-head-type {
+      font-family: var(--ff-body);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+    }
+    .meal-head-time {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--text-sec);
+      opacity: 0.45;
+    }
+
+    /* Filled meal */
+    .meal-card {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: 16px;
+      padding: 14px 16px 12px;
+    }
+    .meal-card-name {
+      font-family: var(--ff-display);
+      font-size: 17px;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+    .meal-card-desc {
+      font-family: var(--ff-body);
+      font-size: 12px;
+      color: var(--text-sec);
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+
+    /* Macro bar — 3 segments */
+    .mbar {
+      display: flex;
+      height: 3px;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 9px;
+      gap: 1px;
+    }
+    .mbar-p { background: var(--peach-dark); border-radius: 2px; }
+    .mbar-c { background: var(--mint-dark);  border-radius: 2px; }
+    .mbar-f { background: #5B6FA0;           border-radius: 2px; }
+
+    /* Kcal + macros row */
+    .meal-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meal-kcal {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(26,40,72,0.07);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .meal-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--divider);
+      flex-shrink: 0;
+    }
+    .meal-macro {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--text-sec);
+    }
+    .meal-edit {
+      margin-left: auto;
+      font-family: var(--ff-body);
+      font-size: 11px;
+      color: var(--text-sec);
+      opacity: 0.6;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Empty meal */
+    .meal-empty {
+      border: 1.5px dashed var(--divider);
+      border-radius: 16px;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .meal-empty-ring {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid var(--divider);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-sec);
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .meal-empty-cta {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: var(--text-sec);
+      font-weight: 400;
+    }
+
+    /* Separator between meals */
+    .meal-sep {
+      height: 1px;
+      background: var(--divider);
+      opacity: 0.7;
+    }
+
+    /* ─── Genera button ───────────────────────────────────────── */
+    .genera-wrap {
+      padding: 20px 20px 40px;
+    }
+    .genera-btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      font-family: var(--ff-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+      transition: background 0.15s;
+    }
+    .genera-btn:hover { background: var(--ground); }
+    .genera-icon { font-size: 15px; }
+
+    /* ─── Caption strip between screens ──────────────────────── */
+    .caption {
+      font-family: var(--ff-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      align-self: flex-start;
+    }
+
+    /* ══════════════════════════════════════════════════════════ */
+    /* SECOND SCREEN: Edit sheet                                  */
+    /* ══════════════════════════════════════════════════════════ */
+
+    /* Dim overlay sitting on top of a blurred phone background */
+    .overlay-wrap {
+      position: relative;
+    }
+    .overlay-scrim {
+      position: absolute;
+      inset: 0;
+      border-radius: 48px;
+      background: rgba(26,40,72,0.28);
+      backdrop-filter: blur(1px);
+      z-index: 1;
+      /* visible only above the sheet */
+      bottom: auto;
+      height: 120px;
+    }
+    .sheet-outer {
+      position: relative;
+      z-index: 2;
+      /* sheet sits at ~35% from top, showing app peeking above */
+      margin-top: 120px;
+    }
+
+    .sheet {
+      background: var(--surface);
+      border-radius: 24px 24px 48px 48px;
+      overflow: hidden;
+    }
+    .sheet-grip-row {
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 0;
+    }
+    .sheet-grip {
+      width: 34px;
+      height: 4px;
+      background: var(--divider);
+      border-radius: 2px;
+    }
+    .sheet-hdr {
+      padding: 14px 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sheet-hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .sheet-hdr-icon { font-size: 20px; }
+    .sheet-hdr-title {
+      font-family: var(--ff-display);
+      font-size: 22px;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .sheet-live-kcal {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--mint-dark);
+      background: rgba(157,176,164,0.18);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .sheet-body {
+      padding: 18px 22px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-lbl {
+      font-family: var(--ff-body);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+    }
+    .field-input {
+      background: var(--ground);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-family: var(--ff-body);
+      font-size: 14px;
+      color: var(--text);
+      width: 100%;
+      outline: none;
+    }
+    .field-input::placeholder { color: var(--text-sec); opacity: 0.45; }
+    .field-input.active { border-color: var(--mint); }
+
+    /* Search results dropdown */
+    .search-drop {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .sres {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid var(--divider);
+      cursor: pointer;
+    }
+    .sres:last-child { border-bottom: none; }
+    .sres-name {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: var(--text);
+    }
+    .sres-meta {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--text-sec);
+      margin-top: 1px;
+    }
+    .sres-add {
+      font-size: 20px;
+      color: var(--mint-dark);
+      opacity: 0.65;
+      flex-shrink: 0;
+    }
+
+    /* Ingredient chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(157,176,164,0.14);
+      border: 1px solid rgba(157,176,164,0.3);
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-family: var(--ff-body);
+      font-size: 12px;
+      color: var(--mint-dark);
+      font-weight: 500;
+    }
+    .chip-x {
+      opacity: 0.45;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Eating out toggle */
+    .eout {
+      background: var(--ground);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .eout-icon { font-size: 17px; }
+    .eout-label {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: var(--text);
+      flex: 1;
+    }
+    .toggle {
+      width: 32px;
+      height: 18px;
+      background: var(--divider);
+      border-radius: 9px;
+      flex-shrink: 0;
+    }
+
+    /* Save button */
+    .save-btn {
+      margin: 18px 22px 36px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 15px 20px;
+      width: calc(100% - 44px);
+      font-family: var(--ff-body);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .save-kcal {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      opacity: 0.65;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gauge-fill { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════
+       SCHERMATA 1 — Vista principale
+  ═══════════════════════════════════════════════════════ -->
+  <p class="caption">Schermata principale · oggi</p>
+  <div class="phone">
+
+    <!-- Status bar -->
+    <div class="sbar">
+      <span class="sbar-time">09:41</span>
+      <div class="sbar-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7.5" width="3" height="4.5" rx="1" fill="white" opacity=".9"/><rect x="4.5" y="5" width="3" height="7" rx="1" fill="white" opacity=".9"/><rect x="9" y="2" width="3" height="10" rx="1" fill="white" opacity=".9"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="white" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" fill="white" opacity=".85"/><path d="M3.5 6.5a6.4 6.4 0 019 0" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".65"/><path d="M1 4a9.8 9.8 0 0114 0" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".35"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x=".5" y=".5" width="18" height="11" rx="3" stroke="white" stroke-opacity=".5"/><rect x="19" y="3.5" width="2.5" height="5" rx="1.5" fill="white" opacity=".5"/><rect x="2" y="2" width="13" height="8" rx="2" fill="white" opacity=".8"/></svg>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="header-sup">Sabato · 21 giugno</span>
+        <span class="header-title">Di<em>eta</em></span>
+      </div>
+      <div class="header-avatar">👤</div>
+    </div>
+
+    <!-- Day strip -->
+    <div class="day-row">
+      <div class="day-item logged">
+        <span class="day-ltr">L</span><span class="day-num">16</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item logged">
+        <span class="day-ltr">M</span><span class="day-num">17</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item logged">
+        <span class="day-ltr">M</span><span class="day-num">18</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item">
+        <span class="day-ltr">G</span><span class="day-num">19</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item logged">
+        <span class="day-ltr">V</span><span class="day-num">20</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item today logged">
+        <span class="day-ltr">S</span><span class="day-num">21</span><div class="day-pip"></div>
+      </div>
+      <div class="day-item">
+        <span class="day-ltr">D</span><span class="day-num">22</span><div class="day-pip"></div>
+      </div>
+    </div>
+
+    <!-- Kcal card -->
+    <div class="kcal-card-wrap">
+      <div class="kcal-card">
+        <div class="kcal-top">
+          <div class="kcal-big">
+            <span class="kcal-big-num">1.200</span>
+            <span class="kcal-big-label">kcal rimaste</span>
+          </div>
+          <span class="kcal-target">ob. 1.850</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="gauge"></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-col">
+            <span class="stat-val">830</span>
+            <span class="stat-lbl">consumate</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-col">
+            <span class="stat-val burned">+180</span>
+            <span class="stat-lbl">bruciate</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-col">
+            <span class="stat-val">1.850</span>
+            <span class="stat-lbl">obiettivo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meals -->
+    <div class="meals-wrap">
+
+      <!-- Colazione ─ filled -->
+      <div class="meal-section">
+        <div class="meal-head">
+          <span class="meal-head-type">Colazione</span>
+          <span class="meal-head-time">7 – 9</span>
+        </div>
+        <div class="meal-card">
+          <div class="meal-card-name">Yogurt greco con granola</div>
+          <div class="meal-card-desc">mirtilli freschi · miele d'acacia</div>
+          <!-- P 18g→72kcal/320=22.5% · C 36g→144/320=45% · G 9g→81/320=25.3% -->
+          <div class="mbar">
+            <div class="mbar-p" style="width:22.5%"></div>
+            <div class="mbar-c" style="width:45%"></div>
+            <div class="mbar-f" style="width:25.3%"></div>
+          </div>
+          <div class="meal-footer">
+            <span class="meal-kcal">320 kcal</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">P 18g</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">C 36g</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">G 9g</span>
+            <span class="meal-edit">modifica</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-sep"></div>
+
+      <!-- Spuntino ─ empty -->
+      <div class="meal-section">
+        <div class="meal-head">
+          <span class="meal-head-type">Spuntino</span>
+          <span class="meal-head-time">10 – 11</span>
+        </div>
+        <div class="meal-empty">
+          <div class="meal-empty-ring">+</div>
+          <span class="meal-empty-cta">Aggiungi spuntino</span>
+        </div>
+      </div>
+
+      <div class="meal-sep"></div>
+
+      <!-- Pranzo ─ filled -->
+      <div class="meal-section">
+        <div class="meal-head">
+          <span class="meal-head-type">Pranzo</span>
+          <span class="meal-head-time">12 – 14</span>
+        </div>
+        <div class="meal-card">
+          <div class="meal-card-name">Pasta integrale al pomodoro</div>
+          <div class="meal-card-desc">basilico fresco · olio EVO · parmigiano</div>
+          <!-- P 16g→64/510=12.5% · C 78g→312/510=61.2% · G 10g→90/510=17.6% -->
+          <div class="mbar">
+            <div class="mbar-p" style="width:12.5%"></div>
+            <div class="mbar-c" style="width:61.2%"></div>
+            <div class="mbar-f" style="width:17.6%"></div>
+          </div>
+          <div class="meal-footer">
+            <span class="meal-kcal">510 kcal</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">P 16g</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">C 78g</span>
+            <div class="meal-dot"></div>
+            <span class="meal-macro">G 10g</span>
+            <span class="meal-edit">modifica</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-sep"></div>
+
+      <!-- Cena ─ empty -->
+      <div class="meal-section">
+        <div class="meal-head">
+          <span class="meal-head-type">Cena</span>
+          <span class="meal-head-time">19 – 21</span>
+        </div>
+        <div class="meal-empty">
+          <div class="meal-empty-ring">+</div>
+          <span class="meal-empty-cta">Aggiungi cena</span>
+        </div>
+      </div>
+
+    </div><!-- /meals-wrap -->
+
+    <!-- Genera button -->
+    <div class="genera-wrap">
+      <button class="genera-btn">
+        <span class="genera-icon">✦</span>
+        Genera piano settimanale
+      </button>
+    </div>
+
+  </div><!-- /phone -->
+
+
+  <!-- ═══════════════════════════════════════════════════
+       SCHERMATA 2 — Bottom sheet modifica pasto
+  ═══════════════════════════════════════════════════════ -->
+  <p class="caption">Bottom sheet · modifica cena</p>
+  <div class="phone overlay-wrap">
+
+    <!-- Blurred background — same header repeated, dimmed -->
+    <div class="sbar">
+      <span class="sbar-time">09:41</span>
+      <div class="sbar-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7.5" width="3" height="4.5" rx="1" fill="white" opacity=".9"/><rect x="4.5" y="5" width="3" height="7" rx="1" fill="white" opacity=".9"/><rect x="9" y="2" width="3" height="10" rx="1" fill="white" opacity=".9"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="white" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" fill="white" opacity=".85"/><path d="M3.5 6.5a6.4 6.4 0 019 0" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".65"/><path d="M1 4a9.8 9.8 0 0114 0" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".35"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x=".5" y=".5" width="18" height="11" rx="3" stroke="white" stroke-opacity=".5"/><rect x="19" y="3.5" width="2.5" height="5" rx="1.5" fill="white" opacity=".5"/><rect x="2" y="2" width="13" height="8" rx="2" fill="white" opacity=".8"/></svg>
+      </div>
+    </div>
+    <div class="header">
+      <div class="header-left">
+        <span class="header-sup">Sabato · 21 giugno</span>
+        <span class="header-title">Di<em>eta</em></span>
+      </div>
+      <div class="header-avatar">👤</div>
+    </div>
+
+    <!-- scrim over the peeking background -->
+    <div class="overlay-scrim"></div>
+
+    <!-- The sheet itself -->
+    <div class="sheet-outer">
+      <div class="sheet">
+        <div class="sheet-grip-row">
+          <div class="sheet-grip"></div>
+        </div>
+        <div class="sheet-hdr">
+          <div class="sheet-hdr-left">
+            <span class="sheet-hdr-icon">🌙</span>
+            <span class="sheet-hdr-title">Cena</span>
+          </div>
+          <span class="sheet-live-kcal">346 kcal</span>
+        </div>
+
+        <div class="sheet-body">
+
+          <!-- Nome -->
+          <div class="field">
+            <span class="field-lbl">Nome del pasto</span>
+            <input class="field-input" value="Salmone al forno con verdure" />
+          </div>
+
+          <!-- Ricerca ingrediente -->
+          <div class="field">
+            <span class="field-lbl">Cerca ingrediente</span>
+            <input class="field-input active" value="salmone" placeholder="Es. riso, pollo, spinaci…" />
+            <div class="search-drop">
+              <div class="sres">
+                <div>
+                  <div class="sres-name">Salmone atlantico</div>
+                  <div class="sres-meta">208 kcal / 100g · P 20g &nbsp;C 0g &nbsp;G 13g</div>
+                </div>
+                <span class="sres-add">＋</span>
+              </div>
+              <div class="sres">
+                <div>
+                  <div class="sres-name">Salmone affumicato</div>
+                  <div class="sres-meta">172 kcal / 100g · P 18g &nbsp;C 0g &nbsp;G 11g</div>
+                </div>
+                <span class="sres-add">＋</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingredienti già aggiunti -->
+          <div class="field">
+            <span class="field-lbl">Ingredienti</span>
+            <div class="chips">
+              <div class="chip">Salmone 150g · 312 kcal <span class="chip-x">×</span></div>
+              <div class="chip">Zucchine 200g · 34 kcal <span class="chip-x">×</span></div>
+            </div>
+          </div>
+
+          <!-- Mangio fuori -->
+          <div class="eout">
+            <span class="eout-icon">🍽</span>
+            <span class="eout-label">Mangio fuori</span>
+            <div class="toggle"></div>
+          </div>
+
+        </div>
+
+        <button class="save-btn">
+          Salva cena
+          <span class="save-kcal">346 kcal</span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /phone 2 -->
+
+
+  <script>
+    // Single orchestrated animation: gauge fills on load
+    window.addEventListener('load', () => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const g = document.getElementById('gauge');
+          if (g) g.classList.add('loaded');
+        }, 250);
+      });
+    });
+  </script>
+</body>
+</html>
