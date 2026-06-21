@@ -1,71 +1,67 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/cycle_entry.dart';
 
-const _kCyclesKey = 'cycle_entries_v1';
-const _kCycleLengthKey = 'cycle_length_v1';
-const _kPeriodLengthKey = 'period_length_v1';
+const _kLastPeriodKey  = 'cycle_last_period_v2';
+const _kCycleLengthKey = 'cycle_length_v2';
+const _kPeriodLengthKey = 'period_length_v2';
 
 class CycleState {
-  final List<CycleEntry> entries;
+  final DateTime? lastPeriodDate;
   final int cycleLength;
   final int periodLength;
 
   const CycleState({
-    this.entries = const [],
+    this.lastPeriodDate,
     this.cycleLength = 28,
     this.periodLength = 5,
   });
 
-  CycleEntry? get lastEntry => entries.isEmpty ? null : entries.last;
-
-  bool get isInActivePeriod {
-    final last = lastEntry;
-    if (last == null) return false;
-    final day = DateTime.now().difference(last.startDate).inDays + 1;
-    return day >= 1 && day <= periodLength && last.endDate == null;
-  }
-
   int? get currentCycleDay {
-    final last = lastEntry;
-    if (last == null) return null;
-    return (DateTime.now().difference(last.startDate).inDays % cycleLength) + 1;
+    if (lastPeriodDate == null) return null;
+    return (DateTime.now().difference(lastPeriodDate!).inDays % cycleLength) + 1;
   }
 
   CyclePhase? get currentPhase {
     final day = currentCycleDay;
-    if (day == null) return null;
-    return _phaseForDay(day);
+    return day == null ? null : phaseForDay(day);
   }
 
   int? get daysToNextPeriod {
     final day = currentCycleDay;
-    if (day == null) return null;
-    return cycleLength - day + 1;
+    return day == null ? null : cycleLength - day + 1;
   }
 
   DateTime? get nextPeriodDate {
-    final last = lastEntry;
-    if (last == null) return null;
-    final daysPassed = DateTime.now().difference(last.startDate).inDays;
-    final cyclesPassed = daysPassed ~/ cycleLength;
-    return last.startDate.add(Duration(days: (cyclesPassed + 1) * cycleLength));
+    if (lastPeriodDate == null) return null;
+    final cyclesPassed = DateTime.now().difference(lastPeriodDate!).inDays ~/ cycleLength;
+    return lastPeriodDate!.add(Duration(days: (cyclesPassed + 1) * cycleLength));
   }
 
-  CyclePhase _phaseForDay(int day) {
+  // Days 11-17 of the cycle are considered fertile
+  bool get isInFertileWindow {
+    final day = currentCycleDay;
+    return day != null && day >= 11 && day <= 17;
+  }
+
+  DateTime? get ovulationDate {
+    if (lastPeriodDate == null) return null;
+    final cyclesPassed = DateTime.now().difference(lastPeriodDate!).inDays ~/ cycleLength;
+    return lastPeriodDate!.add(Duration(days: cyclesPassed * cycleLength + 14));
+  }
+
+  CyclePhase phaseForDay(int day) {
     if (day <= periodLength) return CyclePhase.mestruale;
-    if (day <= 13) return CyclePhase.follicolare;
-    if (day <= 16) return CyclePhase.ovulatoria;
-    return CyclePhase.luteinica;
+    if (day <= 13)           return CyclePhase.follicolare;
+    if (day <= 16)           return CyclePhase.ovulatoria;
+    return                          CyclePhase.luteinica;
   }
 
   CyclePhase? phaseForDate(DateTime date) {
-    final last = lastEntry;
-    if (last == null) return null;
-    final diff = date.difference(last.startDate).inDays;
+    if (lastPeriodDate == null) return null;
+    final diff = date.difference(lastPeriodDate!).inDays;
     if (diff < 0) return null;
-    return _phaseForDay((diff % cycleLength) + 1);
+    return phaseForDay((diff % cycleLength) + 1);
   }
 }
 
@@ -76,60 +72,31 @@ class CycleNotifier extends StateNotifier<CycleState> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_kCyclesKey) ?? [];
-    final entries = raw
-        .map((s) => CycleEntry.fromJson(jsonDecode(s) as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    final dateStr = prefs.getString(_kLastPeriodKey);
     state = CycleState(
-      entries: entries,
-      cycleLength: prefs.getInt(_kCycleLengthKey) ?? 28,
-      periodLength: prefs.getInt(_kPeriodLengthKey) ?? 5,
+      lastPeriodDate: dateStr != null ? DateTime.parse(dateStr) : null,
+      cycleLength:   prefs.getInt(_kCycleLengthKey)  ?? 28,
+      periodLength:  prefs.getInt(_kPeriodLengthKey) ?? 5,
     );
   }
 
-  Future<void> _persist(List<CycleEntry> entries) async {
+  Future<void> updateLastPeriodDate(DateTime date) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      _kCyclesKey,
-      entries.map((e) => jsonEncode(e.toJson())).toList(),
-    );
-  }
-
-  Future<void> logPeriodStart(DateTime date) async {
     final d = DateTime(date.year, date.month, date.day);
-    final entries = [...state.entries, CycleEntry(startDate: d)]
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    await _persist(entries);
-    state = CycleState(entries: entries, cycleLength: state.cycleLength, periodLength: state.periodLength);
-  }
-
-  Future<void> endCurrentPeriod(DateTime date) async {
-    if (state.entries.isEmpty) return;
-    final d = DateTime(date.year, date.month, date.day);
-    final entries = List<CycleEntry>.from(state.entries);
-    entries[entries.length - 1] = entries.last.copyWith(endDate: d);
-    await _persist(entries);
-    state = CycleState(entries: entries, cycleLength: state.cycleLength, periodLength: state.periodLength);
+    await prefs.setString(_kLastPeriodKey, d.toIso8601String());
+    state = CycleState(lastPeriodDate: d, cycleLength: state.cycleLength, periodLength: state.periodLength);
   }
 
   Future<void> updateCycleLength(int length) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_kCycleLengthKey, length);
-    state = CycleState(entries: state.entries, cycleLength: length, periodLength: state.periodLength);
+    state = CycleState(lastPeriodDate: state.lastPeriodDate, cycleLength: length, periodLength: state.periodLength);
   }
 
   Future<void> updatePeriodLength(int length) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_kPeriodLengthKey, length);
-    state = CycleState(entries: state.entries, cycleLength: state.cycleLength, periodLength: length);
-  }
-
-  Future<void> deleteLast() async {
-    if (state.entries.isEmpty) return;
-    final entries = state.entries.sublist(0, state.entries.length - 1);
-    await _persist(entries);
-    state = CycleState(entries: entries, cycleLength: state.cycleLength, periodLength: state.periodLength);
+    state = CycleState(lastPeriodDate: state.lastPeriodDate, cycleLength: state.cycleLength, periodLength: length);
   }
 }
 
