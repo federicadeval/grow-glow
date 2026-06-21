@@ -24,8 +24,10 @@ class AppColors {
   static const Color dietDark    = Color(0xFF1A2848);
   static const Color beauty      = Color(0xFF9DB0A4);
   static const Color beautyDark  = Color(0xFF1A3028);
-  static const Color todo        = Color(0xFFD8CE9C);
-  static const Color todoDark    = Color(0xFF3A2E08);
+  static const Color todo             = Color(0xFFD8CE9C);
+  static const Color todoDark         = Color(0xFF3A2E08);
+  static const Color supplement       = Color(0xFFD4C8E0);
+  static const Color supplementDark   = Color(0xFF3A2458);
 
   // Aliases for backward compat (used in many screens)
   static const Color lavender     = Color(0xFF9DB0A4);
