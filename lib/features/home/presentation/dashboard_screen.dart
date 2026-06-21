@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../fitness/data/calorie_provider.dart';
 import '../../profile/data/profile_provider.dart';
-import '../../supplements/data/supplement_provider.dart';
 import '../data/water_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -17,7 +16,6 @@ class DashboardScreen extends ConsumerWidget {
     final calories = ref.watch(calorieProvider);
     final profile = ref.watch(profileProvider);
     final waterMl = ref.watch(waterProvider);
-    final suppState = ref.watch(supplementProvider);
     final now = DateTime.now();
     final hour = now.hour;
     final greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
@@ -105,13 +103,6 @@ class DashboardScreen extends ConsumerWidget {
                     _SupplementSectionCard(
                       onTap: () => context.go('/supplements'),
                     ),
-                    const SizedBox(height: 16),
-                    if (suppState.activeIds.isNotEmpty)
-                      _SupplementDailySummary(
-                        activeCount: suppState.activeIds.length,
-                        takenCount: suppState.takenTodayIds.length,
-                        onTap: () => context.go('/supplements'),
-                      ),
                     const SizedBox(height: 24),
                     const Text('Questa settimana',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
@@ -545,92 +536,3 @@ class _SupplementSectionCard extends StatelessWidget {
   }
 }
 
-// ─── Supplement daily summary ─────────────────────────────────
-class _SupplementDailySummary extends StatelessWidget {
-  final int activeCount;
-  final int takenCount;
-  final VoidCallback onTap;
-
-  const _SupplementDailySummary({
-    required this.activeCount,
-    required this.takenCount,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final allDone = takenCount == activeCount;
-    final progress = activeCount > 0 ? takenCount / activeCount : 0.0;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: allDone
-              ? AppColors.supplement
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: allDone ? AppColors.supplementDark.withValues(alpha: 0.3) : AppColors.divider,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.supplement,
-                borderRadius: BorderRadius.circular(11),
-              ),
-              child: Icon(Icons.medication_rounded,
-                  color: AppColors.supplementDark, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Integratori oggi',
-                        style: TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      Text('$takenCount di $activeCount',
-                        style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700,
-                          color: allDone
-                              ? AppColors.supplementDark
-                              : AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 4,
-                      backgroundColor: AppColors.divider,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        allDone ? AppColors.supplementDark : AppColors.supplement,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right_rounded,
-                color: AppColors.textSecondary, size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-}
