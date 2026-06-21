@@ -91,7 +91,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                         children: [
                           _StatPill(Icons.fitness_center_rounded, 'Sessioni', '$_weeklySessions'),
                           _StatPill(Icons.local_fire_department_rounded, 'Kcal bruciate', '$_weeklyKcal'),
-                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.suggestedKcal ?? 0}'),
+                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.effectiveKcal ?? 2000}'),
                           _StatPill(Icons.check_circle_rounded, 'Oggi', '${daily.burnedKcal}'),
                         ],
                       ),
@@ -280,7 +280,7 @@ class _KcalBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final target = profile?.suggestedKcal ?? 0;
+    final target = profile?.effectiveKcal ?? 2000;
     final net = target + daily.burnedKcal - daily.consumedKcal;
     final progress = target > 0 ? (daily.consumedKcal / target).clamp(0.0, 1.0) : 0.0;
     final hasProfile = profile != null;

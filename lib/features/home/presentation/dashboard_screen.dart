@@ -22,7 +22,7 @@ class DashboardScreen extends ConsumerWidget {
     final hour = now.hour;
     final greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
 
-    final targetKcal = profile?.suggestedKcal.round() ?? 2000;
+    final targetKcal = profile?.effectiveKcal ?? 2000;
     final remaining = (targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999);
     final kcalProgress = (calories.consumedKcal / targetKcal).clamp(0.0, 1.0);
     final waterL = waterMl / 1000.0;

@@ -23,6 +23,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late DietStyle _dietStyle;
   late List<String> _intolerances;
   late TextEditingController _foodsToAvoidCtrl;
+  late TextEditingController _customKcalCtrl;
 
   bool _initialized = false;
 
@@ -35,12 +36,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _dietStyle = p.dietStyle;
     _intolerances = List.from(p.intolerances);
     _foodsToAvoidCtrl = TextEditingController(text: p.foodsToAvoid);
+    _customKcalCtrl = TextEditingController(
+      text: p.customKcalGoal != null ? '${p.customKcalGoal}' : '',
+    );
     _initialized = true;
   }
 
   @override
   void dispose() {
-    if (_initialized) _foodsToAvoidCtrl.dispose();
+    if (_initialized) {
+      _foodsToAvoidCtrl.dispose();
+      _customKcalCtrl.dispose();
+    }
     super.dispose();
   }
 
@@ -52,6 +59,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _initFrom(profile ?? UserProfile.defaultProfile);
     }
 
+    final customKcal = int.tryParse(_customKcalCtrl.text.trim());
+
     final preview = UserProfile(
       age: _age,
       gender: _gender,
@@ -61,6 +70,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       dietStyle: _dietStyle,
       intolerances: _intolerances,
       foodsToAvoid: _foodsToAvoidCtrl.text,
+      customKcalGoal: customKcal,
     );
 
     return Scaffold(
@@ -82,6 +92,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               // Riepilogo kcal suggerite
               _KcalPreviewCard(profile: preview),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _customKcalCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Obiettivo personalizzato (opzionale)',
+                  hintText: 'Lascia vuoto per usare il valore suggerito',
+                  suffixText: 'kcal',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
               const SizedBox(height: 24),
 
               _SectionTitle('Dati personali'),
@@ -275,6 +298,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       dietStyle: _dietStyle,
       intolerances: List.from(_intolerances),
       foodsToAvoid: _foodsToAvoidCtrl.text.trim(),
+      customKcalGoal: int.tryParse(_customKcalCtrl.text.trim()),
     );
     await ref.read(profileProvider.notifier).save(profile);
     if (mounted) {
@@ -398,6 +422,7 @@ class _KcalPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCustom = profile.customKcalGoal != null;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -412,22 +437,30 @@ class _KcalPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Kcal giornaliere suggerite',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.peachDark.withValues(alpha: 0.8),
-            ),
+          Row(
+            children: [
+              Text(
+                isCustom ? 'Kcal giornaliere (personalizzato)' : 'Kcal giornaliere suggerite',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.peachDark.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
-          Text('${profile.suggestedKcal} kcal',
+          Text('${profile.effectiveKcal} kcal',
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
               color: AppColors.peachDark,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
-          Text('Obiettivo: ${profile.goal.label}  ·  TDEE: ${profile.tdee.round()} kcal',
+          Text(
+            isCustom
+              ? 'Suggerito: ${profile.suggestedKcal} kcal  ·  TDEE: ${profile.tdee.round()} kcal'
+              : 'Obiettivo: ${profile.goal.label}  ·  TDEE: ${profile.tdee.round()} kcal',
             style: TextStyle(fontSize: 12, color: AppColors.peachDark.withValues(alpha: 0.7)),
           ),
         ],
