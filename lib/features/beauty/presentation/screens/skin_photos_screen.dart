@@ -267,7 +267,7 @@ class _InfoBanner extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Text('💡', style: TextStyle(fontSize: 20)),
+          Icon(Icons.lightbulb_rounded, size: 20, color: AppColors.beautyDark),
           SizedBox(width: 12),
           Expanded(
             child: Text(

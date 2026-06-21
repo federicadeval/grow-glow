@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Home</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  .phone {
+    width: 390px;
+    background: #FDF9F7;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    border: 8px solid #222;
+    position: relative;
+  }
+  .notch {
+    width: 120px; height: 28px;
+    background: #222;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+  }
+  .screen {
+    padding: 0 20px 20px;
+    overflow-y: auto;
+    max-height: 820px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 12px;
+  }
+  .header-left h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2D2D2D;
+  }
+  .header-left p {
+    font-size: 12px;
+    color: #8A8A8A;
+    margin-top: 2px;
+  }
+  .avatar {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #E8D5F5, #c9b0ea);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: #9B6BC5;
+  }
+
+  /* ── Hero card Oggi ── */
+  .card-oggi {
+    background: linear-gradient(135deg, #fff8f0 0%, #ffeedd 100%);
+    border-radius: 24px;
+    padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid #ffe0c8;
+  }
+  .card-oggi .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    color: #E8724A; text-transform: uppercase; margin-bottom: 14px;
+  }
+  .rings-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .ring-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .ring-container {
+    position: relative;
+    width: 90px; height: 90px;
+  }
+  .ring-container svg {
+    transform: rotate(-90deg);
+  }
+  .ring-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .ring-center .val {
+    font-size: 18px; font-weight: 700; color: #2D2D2D;
+    line-height: 1;
+  }
+  .ring-center .unit {
+    font-size: 10px; color: #8A8A8A;
+  }
+  .ring-label {
+    font-size: 12px; font-weight: 600; color: #2D2D2D;
+  }
+  .ring-sub {
+    font-size: 10px; color: #8A8A8A; margin-top: -4px;
+  }
+  .divider-v {
+    width: 1px; height: 80px; background: #ffe0c8;
+  }
+  .oggi-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #ffe0c8;
+  }
+  .oggi-footer span {
+    font-size: 12px; color: #8A8A8A;
+  }
+  .oggi-footer strong { color: #2D2D2D; }
+  .btn-acqua {
+    background: #D6EEFF;
+    color: #1E88E5;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── Section cards ── */
+  .section-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 4px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .section-card:hover { transform: scale(1.01); }
+  .section-card.fitness { border-left-color: #E8724A; }
+  .section-card.diet    { border-left-color: #5A9E2F; }
+  .section-card.beauty  { border-left-color: #9B6BC5; }
+  .section-card.todo    { border-left-color: #3DAA82; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 700; color: #2D2D2D;
+  }
+  .card-title .ico {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .ico.fitness { background: #FFD6C2; }
+  .ico.diet    { background: #D8F0C0; }
+  .ico.beauty  { background: #E8D5F5; }
+  .ico.todo    { background: #D4F0E8; }
+
+  .arrow { font-size: 14px; color: #ccc; }
+  .card-sub {
+    font-size: 12px; color: #8A8A8A; padding-left: 40px;
+  }
+  .mini-bar {
+    margin: 0 0 0 40px;
+    height: 4px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .mini-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+  .fitness .mini-bar-fill { background: #E8724A; width: 0%; }
+  .diet .mini-bar-fill    { background: #5A9E2F; width: 62%; }
+  .beauty .mini-bar-fill  { background: #9B6BC5; width: 50%; }
+  .todo .mini-bar-fill    { background: #3DAA82; width: 40%; }
+
+  .badge-done {
+    background: #D8F0C0; color: #5A9E2F;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 10px;
+    margin-left: 40px;
+    display: inline-block;
+  }
+  .badge-warn {
+    background: #FFF3E0; color: #E8724A;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 10px;
+    margin-left: 40px;
+    display: inline-block;
+  }
+
+  /* ── Weekly ── */
+  .section-title {
+    font-size: 13px; font-weight: 700; color: #8A8A8A;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin: 16px 0 10px;
+  }
+  .weekly-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .weekly-meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: #8A8A8A; margin-bottom: 16px;
+  }
+  .weekly-meta strong { color: #2D2D2D; }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 60px;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .bar {
+    width: 100%;
+    border-radius: 4px;
+  }
+  .bar.has-val { background: #FFD6C2; }
+  .bar.today   { background: #E8724A; }
+  .bar.empty   { background: #F0F0F0; height: 4px !important; }
+  .day-label {
+    font-size: 10px; color: #8A8A8A; font-weight: 500;
+  }
+  .day-label.today { color: #2D2D2D; font-weight: 700; }
+  .drop { font-size: 8px; }
+  .drop.full { color: #1E88E5; }
+  .drop.empty { color: #DDD; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    display: flex;
+    background: #fff;
+    padding: 10px 12px 16px;
+    border-top: 1px solid #F0F0F0;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 4px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 9px; font-weight: 600; color: #8A8A8A;
+    transition: all 0.15s;
+  }
+  .nav-item.active {
+    background: #E8D5F5; color: #9B6BC5;
+    flex-direction: row; justify-content: center; gap: 6px;
+    font-size: 11px;
+  }
+  .nav-item .nav-ico { font-size: 20px; }
+  .nav-item.active .nav-ico { font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h2>Buongiorno! 👋</h2>
+        <p>martedì 16 giugno 2026</p>
+      </div>
+      <div class="avatar">F</div>
+    </div>
+
+    <!-- Hero oggi -->
+    <div class="card-oggi">
+      <div class="label">Oggi</div>
+      <div class="rings-row">
+
+        <!-- Ring kcal -->
+        <div class="ring-wrap">
+          <div class="ring-container">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#FFD6C2" stroke-width="9"/>
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#E8724A" stroke-width="9"
+                stroke-dasharray="226" stroke-dashoffset="88" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-center">
+              <div class="val">1240</div>
+              <div class="unit">kcal</div>
+            </div>
+          </div>
+          <div class="ring-label">Calorie</div>
+          <div class="ring-sub">obiettivo 2000</div>
+        </div>
+
+        <div class="divider-v"></div>
+
+        <!-- Ring acqua -->
+        <div class="ring-wrap">
+          <div class="ring-container">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#BBDEFB" stroke-width="9"/>
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#1E88E5" stroke-width="9"
+                stroke-dasharray="226" stroke-dashoffset="113" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-center">
+              <div class="val">1.5</div>
+              <div class="unit">litri</div>
+            </div>
+          </div>
+          <div class="ring-label">Acqua</div>
+          <div class="ring-sub">obiettivo 2 L</div>
+        </div>
+
+      </div>
+      <div class="oggi-footer">
+        <span><strong>760 kcal</strong> rimanenti</span>
+        <button class="btn-acqua">+ borraccia 💧</button>
+      </div>
+    </div>
+
+    <!-- Section cards -->
+    <div class="section-title">Le sezioni</div>
+
+    <div class="section-card fitness">
+      <div class="card-top">
+        <div class="card-title">
+          <div class="ico fitness">🏋️</div>
+          Fitness
+        </div>
+        <span class="arrow">›</span>
+      </div>
+      <div class="card-sub">Nessun allenamento oggi</div>
+      <div class="mini-bar"><div class="mini-bar-fill"></div></div>
+    </div>
+
+    <div class="section-card diet">
+      <div class="card-top">
+        <div class="card-title">
+          <div class="ico diet">🥗</div>
+          Dieta
+        </div>
+        <span class="arrow">›</span>
+      </div>
+      <div class="card-sub">Colazione · 377 kcal registrate</div>
+      <div class="mini-bar"><div class="mini-bar-fill"></div></div>
+    </div>
+
+    <div class="section-card beauty">
+      <div class="card-top">
+        <div class="card-title">
+          <div class="ico beauty">✨</div>
+          Beauty
+        </div>
+        <span class="arrow">›</span>
+      </div>
+      <span class="badge-done">✓ Mattina completata</span>
+      <div class="card-sub" style="margin-top:4px">Sera ancora da fare</div>
+    </div>
+
+    <div class="section-card todo">
+      <div class="card-top">
+        <div class="card-title">
+          <div class="ico todo">✅</div>
+          Todo
+        </div>
+        <span class="arrow">›</span>
+      </div>
+      <span class="badge-warn">⚠ 1 task in scadenza oggi</span>
+      <div class="card-sub" style="margin-top:4px">3 task aperti</div>
+    </div>
+
+    <!-- Weekly -->
+    <div class="section-title">Questa settimana</div>
+    <div class="weekly-card">
+      <div class="weekly-meta">
+        <span>Ultimi 7 giorni</span>
+        <span><strong>3 allenamenti · 1240 kcal</strong></span>
+      </div>
+      <div class="bars">
+        <div class="bar-col">
+          <div class="bar has-val" style="height:40px"></div>
+          <div class="day-label">L</div>
+          <div class="drop full">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar empty"></div>
+          <div class="day-label">M</div>
+          <div class="drop empty">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar has-val" style="height:55px"></div>
+          <div class="day-label">M</div>
+          <div class="drop full">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar empty"></div>
+          <div class="day-label">G</div>
+          <div class="drop empty">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar empty"></div>
+          <div class="day-label">V</div>
+          <div class="drop empty">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar empty"></div>
+          <div class="day-label">S</div>
+          <div class="drop empty">💧</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar today" style="height:30px"></div>
+          <div class="day-label today">D</div>
+          <div class="drop full">💧</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="nav-ico">🏠</span>
+      Home
+    </div>
+    <div class="nav-item">
+      <span class="nav-ico">💪</span>
+      Fitness
+    </div>
+    <div class="nav-item">
+      <span class="nav-ico">🥗</span>
+      Dieta
+    </div>
+    <div class="nav-item active">
+      <span class="nav-ico">✨</span>
+      Beauty
+    </div>
+    <div class="nav-item">
+      <span class="nav-ico">✅</span>
+      Todo
+    </div>
+  </div>
+</div>
+</body>
+</html>

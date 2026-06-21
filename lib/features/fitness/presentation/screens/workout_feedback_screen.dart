@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/workout_history_provider.dart';
+import '../../data/workout_weights_provider.dart';
 import '../../domain/models/workout_model.dart';
+import '../../domain/models/workout_session_model.dart';
 
-class WorkoutFeedbackScreen extends StatefulWidget {
+class WorkoutFeedbackScreen extends ConsumerStatefulWidget {
   final WorkoutPlan workout;
   const WorkoutFeedbackScreen({super.key, required this.workout});
 
   @override
-  State<WorkoutFeedbackScreen> createState() => _WorkoutFeedbackScreenState();
+  ConsumerState<WorkoutFeedbackScreen> createState() => _WorkoutFeedbackScreenState();
 }
 
-class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
+class _WorkoutFeedbackScreenState extends ConsumerState<WorkoutFeedbackScreen> {
   // Q1 — fatica generale (1-5)
   int? _fatigue;
 
@@ -33,6 +37,26 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
       _mood != null;
 
   void _submit() {
+    // Build weights map: exerciseName -> weight string
+    final weights = ref.read(workoutWeightsProvider);
+    final weightMap = <String, String>{};
+    for (var i = 0; i < widget.workout.exercises.length; i++) {
+      final ex = widget.workout.exercises[i];
+      weightMap[ex.name] = weights['${widget.workout.id}_$i'] ?? ex.weight;
+    }
+    ref.read(workoutHistoryProvider.notifier).addSession(WorkoutSession(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      workoutId: widget.workout.id,
+      workoutName: widget.workout.name,
+      weights: weightMap,
+      fatigue: _fatigue!,
+      loadFeel: _loadFeel!.name,
+      jointPain: _jointPain!,
+      mood: _mood!.name,
+      estimatedKcal: widget.workout.estimatedKcal,
+    ));
+
     final suggestions = _buildSuggestions();
     Navigator.pushReplacement(
       context,
@@ -52,20 +76,20 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Basato su fatica
     if (_fatigue! <= 2) {
       suggestions.add(_Suggestion(
-        emoji: '⬆️',
+        icon: Icons.trending_up_rounded,
         title: 'Aumenta il carico',
         body: 'Ti sei sentita poco affaticata — è il momento di aggiungere 2-2.5 kg agli esercizi principali (squat, panca, stacco).',
         type: _SuggestionType.increase,
       ));
     } else if (_fatigue! == 5) {
       suggestions.add(_Suggestion(
-        emoji: '⬇️',
+        icon: Icons.trending_down_rounded,
         title: 'Riduci leggermente il carico',
         body: 'Fatica molto alta: prova a ridurre il peso del 10-15% nella prossima sessione e concentrati sulla tecnica.',
         type: _SuggestionType.decrease,
       ));
       suggestions.add(_Suggestion(
-        emoji: '😴',
+        icon: Icons.bedtime_rounded,
         title: 'Priorità al recupero',
         body: 'Dormi almeno 7-8 ore stanotte e assicurati di mangiare abbastanza proteine (1.6g per kg di peso corporeo).',
         type: _SuggestionType.rest,
@@ -75,14 +99,14 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Basato sul carico
     if (_loadFeel == _LoadFeel.tooLight) {
       suggestions.add(_Suggestion(
-        emoji: '🏋️',
+        icon: Icons.fitness_center_rounded,
         title: 'Il peso era troppo leggero',
         body: 'Aggiungi 2.5 kg agli esercizi con bilanciere e 1 kg per quelli con manubri nella prossima sessione.',
         type: _SuggestionType.increase,
       ));
     } else if (_loadFeel == _LoadFeel.tooHeavy) {
       suggestions.add(_Suggestion(
-        emoji: '🎯',
+        icon: Icons.flag_rounded,
         title: 'Riduci il carico',
         body: 'Se non riesci a mantenere la tecnica corretta, togli 2.5 kg. Meglio meno peso con forma perfetta.',
         type: _SuggestionType.decrease,
@@ -92,7 +116,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Dolori articolari
     if (_jointPain == true) {
       suggestions.add(_Suggestion(
-        emoji: '⚠️',
+        icon: Icons.warning_rounded,
         title: 'Attenzione ai dolori articolari',
         body: 'Se il dolore persiste, consulta un medico. Nel frattempo evita l\'esercizio che lo causa e sostituiscilo con una variante meno impattante.',
         type: _SuggestionType.warning,
@@ -105,7 +129,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
       final tip = _exerciseTip(ex.name);
       if (tip != null) {
         suggestions.add(_Suggestion(
-          emoji: '💡',
+          icon: Icons.lightbulb_rounded,
           title: '${ex.name} — consiglio',
           body: tip,
           type: _SuggestionType.tip,
@@ -116,14 +140,14 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
     // Umore
     if (_mood == _Mood.bad) {
       suggestions.add(_Suggestion(
-        emoji: '🌸',
+        icon: Icons.favorite_rounded,
         title: 'Hai fatto benissimo lo stesso!',
         body: 'Allenarsi anche quando non si è al massimo è la vera forza. La prossima volta potrebbe andare meglio — e anche se non fosse così, conta lo stesso.',
         type: _SuggestionType.motivation,
       ));
     } else if (_mood == _Mood.great) {
       suggestions.add(_Suggestion(
-        emoji: '🔥',
+        icon: Icons.local_fire_department_rounded,
         title: 'Sei in forma!',
         body: 'Ottimo umore = ottima sessione. Considera di aggiungere una serie extra agli esercizi principali la prossima volta.',
         type: _SuggestionType.increase,
@@ -132,7 +156,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
 
     if (suggestions.isEmpty) {
       suggestions.add(_Suggestion(
-        emoji: '✅',
+        icon: Icons.check_circle_rounded,
         title: 'Tutto nella norma',
         body: 'La sessione è andata bene! Continua così e rivedi i carichi tra 2-3 settimane.',
         type: _SuggestionType.tip,
@@ -194,7 +218,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(5, (i) {
                   final level = i + 1;
-                  final labels = ['😴', '🙂', '😤', '😓', '🥵'];
+                  final fatigueIcons = [Icons.bedtime_rounded, Icons.sentiment_satisfied_rounded, Icons.directions_run_rounded, Icons.sentiment_dissatisfied_rounded, Icons.local_fire_department_rounded];
                   final sublabels = ['Per niente', 'Poco', 'Moderata', 'Molto', 'Esausta'];
                   final isSelected = _fatigue == level;
                   return GestureDetector(
@@ -211,7 +235,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(labels[i], style: const TextStyle(fontSize: 28)),
+                          Icon(fatigueIcons[i], size: 28, color: isSelected ? AppColors.peachDark : AppColors.textSecondary),
                           const SizedBox(height: 4),
                           Text('$level',
                             style: TextStyle(
@@ -252,12 +276,14 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                     ),
                     child: Row(
                       children: [
-                        Text(l.emoji, style: const TextStyle(fontSize: 22)),
+                        Icon(l.icon, size: 22, color: _loadFeel == l ? AppColors.peachDark : AppColors.textSecondary),
                         const SizedBox(width: 12),
-                        Text(l.label,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                        Expanded(
+                          child: Text(l.label,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: _loadFeel == l ? AppColors.peachDark : AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ],
@@ -288,7 +314,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Text('✅', style: TextStyle(fontSize: 24)),
+                            const Icon(Icons.check_circle_rounded, size: 24, color: AppColors.mintDark),
                             const SizedBox(height: 4),
                             Text('No, tutto ok',
                               style: TextStyle(
@@ -318,7 +344,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Text('⚠️', style: TextStyle(fontSize: 24)),
+                            const Icon(Icons.warning_rounded, size: 24, color: AppColors.blushDark),
                             const SizedBox(height: 4),
                             Text('Sì, qualcosa',
                               style: TextStyle(
@@ -398,7 +424,7 @@ class _WorkoutFeedbackScreenState extends State<WorkoutFeedbackScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(m.emoji, style: const TextStyle(fontSize: 32)),
+                          Icon(m.icon, size: 32, color: isSelected ? AppColors.lavenderDark : AppColors.textSecondary),
                           const SizedBox(height: 4),
                           Text(m.label,
                             style: TextStyle(
@@ -449,11 +475,11 @@ extension on _LoadFeel {
       case _LoadFeel.tooHeavy: return 'Troppo pesante, ho faticato con la tecnica';
     }
   }
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case _LoadFeel.tooLight: return '🪶';
-      case _LoadFeel.justRight: return '🎯';
-      case _LoadFeel.tooHeavy: return '🏋️';
+      case _LoadFeel.tooLight: return Icons.arrow_downward_rounded;
+      case _LoadFeel.justRight: return Icons.check_circle_rounded;
+      case _LoadFeel.tooHeavy: return Icons.fitness_center_rounded;
     }
   }
 }
@@ -461,12 +487,12 @@ extension on _LoadFeel {
 enum _Mood { bad, neutral, good, great }
 
 extension on _Mood {
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case _Mood.bad: return '😔';
-      case _Mood.neutral: return '😐';
-      case _Mood.good: return '😊';
-      case _Mood.great: return '🤩';
+      case _Mood.bad: return Icons.sentiment_very_dissatisfied_rounded;
+      case _Mood.neutral: return Icons.sentiment_neutral_rounded;
+      case _Mood.good: return Icons.sentiment_satisfied_rounded;
+      case _Mood.great: return Icons.sentiment_very_satisfied_rounded;
     }
   }
   String get label {
@@ -483,12 +509,12 @@ extension on _Mood {
 enum _SuggestionType { increase, decrease, rest, tip, warning, motivation }
 
 class _Suggestion {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String body;
   final _SuggestionType type;
   const _Suggestion({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.body,
     required this.type,
@@ -519,7 +545,7 @@ extension on _SuggestionType {
 }
 
 // ─── Schermata suggerimenti ──────────────────────────────────
-class _SuggestionsScreen extends StatelessWidget {
+class _SuggestionsScreen extends ConsumerWidget {
   final WorkoutPlan workout;
   final List<_Suggestion> suggestions;
   final int fatigue;
@@ -530,10 +556,141 @@ class _SuggestionsScreen extends StatelessWidget {
     required this.fatigue,
   });
 
+  bool get _hasWeightSuggestion => suggestions.any((s) =>
+      s.type == _SuggestionType.increase || s.type == _SuggestionType.decrease);
+
+  void _showEditWeights(BuildContext context, WidgetRef ref) {
+    final weights = ref.read(workoutWeightsProvider);
+    // Only exercises that actually have a weight (skip bodyweight '—')
+    final weightableEntries = workout.exercises.asMap().entries
+        .where((e) {
+          final w = weights['${workout.id}_${e.key}'] ?? e.value.weight;
+          return w != '—';
+        })
+        .toList();
+
+    if (weightableEntries.isEmpty) return;
+
+    final parsedWeights = {
+      for (final e in weightableEntries)
+        e.key: _parseWeight(weights['${workout.id}_${e.key}'] ?? e.value.weight),
+    };
+    final controllers = {
+      for (final e in weightableEntries)
+        e.key: TextEditingController(text: parsedWeights[e.key]!.numericValue),
+    };
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Aggiorna pesi — ${workout.name}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              const Text('Modifica il peso per ogni esercizio',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 20),
+              ...weightableEntries.map((e) {
+                final parsed = parsedWeights[e.key]!;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (parsed.prefix != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(parsed.prefix!,
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(e.value.name,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 68,
+                            child: TextField(
+                              controller: controllers[e.key],
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          if (parsed.unit.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text(parsed.unit,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ref.read(workoutWeightsProvider.notifier).setWeightsForWorkout(
+                      workout.id,
+                      List.generate(workout.exercises.length, (i) {
+                        if (!controllers.containsKey(i)) return '';
+                        final value = controllers[i]!.text.trim();
+                        if (value.isEmpty) return '';
+                        return parsedWeights[i]!.reconstruct(value);
+                      }),
+                    );
+                    for (final c in controllers.values) c.dispose();
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.peachDark,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Salva pesi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).then((_) {
+      for (final c in controllers.values) {
+        if (c.hasListeners) c.dispose();
+      }
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('I tuoi suggerimenti 💡')),
+      appBar: AppBar(title: const Text('I tuoi suggerimenti')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -553,7 +710,7 @@ class _SuggestionsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text(_fatigueEmoji, style: const TextStyle(fontSize: 44)),
+                  Icon(_fatigueIcon, size: 44, color: AppColors.peachDark),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -584,16 +741,29 @@ class _SuggestionsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ...suggestions.map((s) => _SuggestionCard(suggestion: s)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            if (_hasWeightSuggestion)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showEditWeights(context, ref),
+                    icon: const Icon(Icons.monitor_weight_outlined),
+                    label: const Text('Aggiorna pesi nella scheda'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.peachDark,
+                      side: const BorderSide(color: AppColors.peachDark),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Torna alla lista schede
-                  Navigator.of(context).popUntil(
-                    (route) => route.isFirst || route.settings.name == '/fitness',
-                  );
-                },
+                onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.peachDark,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -601,19 +771,20 @@ class _SuggestionsScreen extends StatelessWidget {
                 child: const Text('Torna alle schede'),
               ),
             ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
     );
   }
 
-  String get _fatigueEmoji {
+  IconData get _fatigueIcon {
     switch (fatigue) {
-      case 1: return '😴';
-      case 2: return '🙂';
-      case 3: return '😤';
-      case 4: return '😓';
-      default: return '🥵';
+      case 1: return Icons.bedtime_rounded;
+      case 2: return Icons.sentiment_satisfied_rounded;
+      case 3: return Icons.directions_run_rounded;
+      case 4: return Icons.sentiment_dissatisfied_rounded;
+      default: return Icons.local_fire_department_rounded;
     }
   }
 }
@@ -634,7 +805,7 @@ class _SuggestionCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(suggestion.emoji, style: const TextStyle(fontSize: 28)),
+          Icon(suggestion.icon, size: 28, color: suggestion.type.color),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -662,6 +833,46 @@ class _SuggestionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Weight parsing helpers ──────────────────────────────────
+class _WeightParts {
+  final String numericValue;
+  final String unit;
+  final String? prefix;
+
+  const _WeightParts({required this.numericValue, required this.unit, this.prefix});
+
+  String reconstruct(String newValue) {
+    if (prefix != null) return '$prefix ($newValue $unit)';
+    if (unit.isEmpty) return newValue;
+    return '$newValue $unit';
+  }
+}
+
+_WeightParts _parseWeight(String weight) {
+  final w = weight.trim();
+  // Legacy: "Solo bilanciere (10 kg)" — strip prefix, keep number
+  final prefixMatch = RegExp(r'^.+?\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
+  if (prefixMatch != null) {
+    return _WeightParts(numericValue: prefixMatch.group(1)!, unit: prefixMatch.group(2)!);
+  }
+  // "15-20 kg" or "4-5 kg/lato" — take the upper value of the range
+  final rangeMatch = RegExp(r'^\d+(?:\.\d+)?-(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
+  if (rangeMatch != null) {
+    return _WeightParts(numericValue: rangeMatch.group(1)!, unit: rangeMatch.group(2)!);
+  }
+  // "20 kg" or "20 kg/lato"
+  final simpleMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\s*$').firstMatch(w);
+  if (simpleMatch != null) {
+    return _WeightParts(numericValue: simpleMatch.group(1)!, unit: simpleMatch.group(2)!);
+  }
+  // Plain number saved from old free-text field — default unit to kg
+  final plainMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*$').firstMatch(w);
+  if (plainMatch != null) {
+    return _WeightParts(numericValue: plainMatch.group(1)!, unit: 'kg');
+  }
+  return _WeightParts(numericValue: w, unit: 'kg');
 }
 
 // ─── Widget riutilizzabile question card ─────────────────────

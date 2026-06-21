@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
+
 enum Gender { female, male }
 
 enum FitnessGoal { weightLoss, maintenance, muscleMass }
+
+enum DietStyle { onnivora, vegetariana, vegana, altro }
 
 extension FitnessGoalLabel on FitnessGoal {
   String get label {
@@ -11,14 +15,36 @@ extension FitnessGoalLabel on FitnessGoal {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case FitnessGoal.weightLoss: return '⚖️';
-      case FitnessGoal.maintenance: return '🎯';
-      case FitnessGoal.muscleMass: return '💪';
+      case FitnessGoal.weightLoss: return Icons.monitor_weight_rounded;
+      case FitnessGoal.maintenance: return Icons.flag_rounded;
+      case FitnessGoal.muscleMass: return Icons.fitness_center_rounded;
     }
   }
 }
+
+extension DietStyleLabel on DietStyle {
+  String get label {
+    switch (this) {
+      case DietStyle.onnivora: return 'Onnivora';
+      case DietStyle.vegetariana: return 'Vegetariana';
+      case DietStyle.vegana: return 'Vegana';
+      case DietStyle.altro: return 'Altro';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case DietStyle.onnivora: return Icons.restaurant_rounded;
+      case DietStyle.vegetariana: return Icons.eco_rounded;
+      case DietStyle.vegana: return Icons.grass_rounded;
+      case DietStyle.altro: return Icons.dining_rounded;
+    }
+  }
+}
+
+const kAllIntolerances = ['Lattosio', 'Glutine', 'Frutta secca', 'Uova', 'Pesce', 'Crostacei', 'Soia'];
 
 class UserProfile {
   final String? name;
@@ -27,6 +53,10 @@ class UserProfile {
   final double weightKg;
   final double heightCm;
   final FitnessGoal goal;
+  final DietStyle dietStyle;
+  final List<String> intolerances;
+  final String foodsToAvoid;
+  final int? customKcalGoal;
 
   const UserProfile({
     this.name,
@@ -35,6 +65,10 @@ class UserProfile {
     required this.weightKg,
     required this.heightCm,
     required this.goal,
+    this.dietStyle = DietStyle.onnivora,
+    this.intolerances = const [],
+    this.foodsToAvoid = '',
+    this.customKcalGoal,
   });
 
   // Mifflin-St Jeor
@@ -46,7 +80,6 @@ class UserProfile {
     }
   }
 
-  // Lightly active (home gym 3×/week)
   double get tdee => bmr * 1.375;
 
   int get suggestedKcal {
@@ -57,7 +90,8 @@ class UserProfile {
     }
   }
 
-  // Macro split suggerito
+  int get effectiveKcal => customKcalGoal ?? suggestedKcal;
+
   int get proteinG {
     switch (goal) {
       case FitnessGoal.weightLoss: return (weightKg * 2.0).round();
@@ -66,8 +100,8 @@ class UserProfile {
     }
   }
 
-  int get carbsG => ((suggestedKcal * 0.45) / 4).round();
-  int get fatG => ((suggestedKcal * 0.25) / 9).round();
+  int get carbsG => ((effectiveKcal * 0.45) / 4).round();
+  int get fatG => ((effectiveKcal * 0.25) / 9).round();
 
   UserProfile copyWith({
     String? name,
@@ -76,6 +110,10 @@ class UserProfile {
     double? weightKg,
     double? heightCm,
     FitnessGoal? goal,
+    DietStyle? dietStyle,
+    List<String>? intolerances,
+    String? foodsToAvoid,
+    Object? customKcalGoal = _unset,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -84,8 +122,14 @@ class UserProfile {
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
       goal: goal ?? this.goal,
+      dietStyle: dietStyle ?? this.dietStyle,
+      intolerances: intolerances ?? this.intolerances,
+      foodsToAvoid: foodsToAvoid ?? this.foodsToAvoid,
+      customKcalGoal: customKcalGoal == _unset ? this.customKcalGoal : customKcalGoal as int?,
     );
   }
+
+  static const Object _unset = Object();
 
   Map<String, dynamic> toJson() => {
     'name': name,
@@ -94,6 +138,10 @@ class UserProfile {
     'weightKg': weightKg,
     'heightCm': heightCm,
     'goal': goal.index,
+    'dietStyle': dietStyle.index,
+    'intolerances': intolerances,
+    'foodsToAvoid': foodsToAvoid,
+    'customKcalGoal': customKcalGoal,
   };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
@@ -103,6 +151,10 @@ class UserProfile {
     weightKg: (json['weightKg'] as num).toDouble(),
     heightCm: (json['heightCm'] as num).toDouble(),
     goal: FitnessGoal.values[json['goal'] as int],
+    dietStyle: DietStyle.values[json['dietStyle'] as int? ?? 0],
+    intolerances: (json['intolerances'] as List<dynamic>?)?.cast<String>() ?? [],
+    foodsToAvoid: json['foodsToAvoid'] as String? ?? '',
+    customKcalGoal: json['customKcalGoal'] as int?,
   );
 
   static UserProfile get defaultProfile => const UserProfile(

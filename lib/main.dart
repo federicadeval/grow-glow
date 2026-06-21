@@ -1,23 +1,26 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'core/constants/supabase_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: SupabaseConstants.supabaseUrl,
-    anonKey: SupabaseConstants.supabaseAnonKey, // ignore: deprecated_member_use
-  );
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError: ${details.exceptionAsString()}\n${details.stack}');
+    };
 
-  runApp(
-    const ProviderScope(
-      child: GrowGlowApp(),
-    ),
-  );
+    runApp(
+      const ProviderScope(
+        child: GrowGlowApp(),
+      ),
+    );
+  }, (error, stack) {
+    debugPrint('Unhandled error: $error\n$stack');
+  });
 }
 
 class GrowGlowApp extends ConsumerWidget {

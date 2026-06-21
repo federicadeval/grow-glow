@@ -1,126 +1,278 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../profile/domain/user_profile.dart';
+import '../../../../core/widgets/section_banner.dart';
 import '../../../profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
+import '../../domain/models/workout_model.dart';
+import 'workout_history_screen.dart';
+import 'workout_screen.dart';
+import 'workout_session_screen.dart';
+import 'c25k_session_screen.dart';
 
-class FitnessScreen extends ConsumerWidget {
+class FitnessScreen extends ConsumerStatefulWidget {
   const FitnessScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FitnessScreen> createState() => _FitnessScreenState();
+}
+
+class _FitnessScreenState extends ConsumerState<FitnessScreen> {
+  int _selectedDay = DateTime.now().weekday - 1; // 0=Mon…6=Sun
+  List<int> _weekBurnedKcal = List.filled(7, 0); // Mon–Sun
+
+  static const _dayLabels = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeekData();
+  }
+
+  Future<void> _loadWeekData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    // Find the Monday of current week
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    final burned = <int>[];
+    for (int i = 0; i < 7; i++) {
+      final day = monday.add(Duration(days: i));
+      final key = 'daily_kcal_${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+      final raw = prefs.getString(key);
+      int kcal = 0;
+      if (raw != null) {
+        final json = jsonDecode(raw) as Map<String, dynamic>;
+        kcal = json['burnedKcal'] as int? ?? 0;
+      }
+      burned.add(kcal);
+    }
+    if (mounted) setState(() => _weekBurnedKcal = burned);
+  }
+
+  int get _weeklySessions => _weekBurnedKcal.where((k) => k > 0).length;
+  int get _weeklyKcal => _weekBurnedKcal.fold(0, (a, b) => a + b);
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
     final daily = ref.watch(calorieProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fitness 💪'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline_rounded),
-            onPressed: () => context.push('/profile'),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Colored top strip (scrolls with content) ────────
+              Container(
+                color: AppColors.fitness,
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                      child: SectionBanner(
+                        icon: Icons.fitness_center_rounded,
+                        title: 'Fitness',
+                        subtitle: 'Allenati e monitora le calorie ogni giorno',
+                        bgColor: AppColors.fitness,
+                        fgColor: AppColors.fitnessDark,
+                      ),
+                    ),
+                    // Stats row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _StatPill(Icons.fitness_center_rounded, 'Sessioni', '$_weeklySessions'),
+                          _StatPill(Icons.local_fire_department_rounded, 'Kcal bruciate', '$_weeklyKcal'),
+                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.effectiveKcal ?? 2000}'),
+                          _StatPill(Icons.check_circle_rounded, 'Oggi', '${daily.burnedKcal}'),
+                        ],
+                      ),
+                    ),
+                    // Day selector
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Row(
+                        children: List.generate(7, (i) {
+                          final isSelected = i == _selectedDay;
+                          final hasWorkout = _weekBurnedKcal[i] > 0;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedDay = i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.fitnessDark : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(_dayLabels[i],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected ? Colors.white : AppColors.fitnessDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: hasWorkout
+                                            ? (isSelected ? Colors.white : AppColors.fitnessDark)
+                                            : Colors.transparent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Scrollable content ───────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _KcalBanner(profile: profile, daily: daily, ref: ref),
+                    const SizedBox(height: 24),
+
+                    Text('Le mie schede',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Tap su una scheda per avviare la sessione',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    ...builtinWorkouts.map((w) => WorkoutCard(
+                      workout: w,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WorkoutSessionScreen(workout: w),
+                        ),
+                      ).then((_) => _loadWeekData()),
+                    )),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const WorkoutHistoryScreen()),
+                        ),
+                        icon: const Icon(Icons.history_rounded),
+                        label: const Text('Storico allenamenti'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.peachDark,
+                          side: const BorderSide(color: AppColors.peachDark),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text('Corsa',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () => context.go('/fitness/workout'),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.mint, AppColors.sky],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.directions_run_rounded, size: 36, color: AppColors.mintDark),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Couch to 5K',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: AppColors.mintDark,
+                                    ),
+                                  ),
+                                  Text('9 settimane · 3 sessioni/settimana · da 0 a 5 km',
+                                    style: TextStyle(fontSize: 13, color: AppColors.mintDark.withValues(alpha: 0.8)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded, color: AppColors.mintDark, size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _GreetingCard(profile: profile),
-            const SizedBox(height: 16),
-
-            // Banner kcal giornaliero
-            _KcalBanner(profile: profile, daily: daily, ref: ref),
-            const SizedBox(height: 24),
-
-            Text('Le tue sezioni',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _FitnessCard(
-                    title: 'Palestra',
-                    subtitle: 'Schede & allenamenti',
-                    icon: Icons.fitness_center_rounded,
-                    color: AppColors.peachDark,
-                    bgColor: AppColors.peach,
-                    onTap: () => context.go('/fitness/workout'),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _FitnessCard(
-                    title: 'Dieta',
-                    subtitle: 'Piani & pasti',
-                    icon: Icons.restaurant_rounded,
-                    color: AppColors.mintDark,
-                    bgColor: AppColors.mint,
-                    onTap: () => context.go('/fitness/diet'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text('Riepilogo settimanale',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            _WeeklySummaryCard(),
-          ],
         ),
       ),
     );
   }
 }
 
-// ─── Greeting ────────────────────────────────────────────────
-class _GreetingCard extends StatelessWidget {
-  final UserProfile? profile;
-  const _GreetingCard({required this.profile});
+// ─── Stat pill (same style as diet's _KcalPill) ───────────────
+class _StatPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _StatPill(this.icon, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.peach, AppColors.fitness],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: AppColors.fitnessDark),
+        const SizedBox(height: 2),
+        Text(value,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.fitnessDark),
         ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('$greeting! 🌅',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: AppColors.peachDark,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text('Pronta per allenarti oggi?',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.peachDark.withValues(alpha: 0.8),
-            ),
-          ),
-        ],
-      ),
+        Text(label,
+          style: TextStyle(fontSize: 10, color: AppColors.fitnessDark.withValues(alpha: 0.7)),
+        ),
+      ],
     );
   }
 }
 
-// ─── Banner kcal giornaliero ──────────────────────────────────
+// ─── Kcal banner ─────────────────────────────────────────────
 class _KcalBanner extends StatelessWidget {
-  final UserProfile? profile;
+  final dynamic profile;
   final DailyCalories daily;
   final WidgetRef ref;
 
@@ -128,12 +280,9 @@ class _KcalBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final target = profile?.suggestedKcal ?? 0;
+    final target = profile?.effectiveKcal ?? 2000;
     final net = target + daily.burnedKcal - daily.consumedKcal;
-    final progress = target > 0
-        ? (daily.consumedKcal / target).clamp(0.0, 1.0)
-        : 0.0;
-
+    final progress = target > 0 ? (daily.consumedKcal / target).clamp(0.0, 1.0) : 0.0;
     final hasProfile = profile != null;
 
     return Container(
@@ -155,9 +304,7 @@ class _KcalBanner extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Kcal oggi',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Kcal oggi', style: Theme.of(context).textTheme.titleMedium),
               if (!hasProfile)
                 GestureDetector(
                   onTap: () => context.push('/profile'),
@@ -175,9 +322,7 @@ class _KcalBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-
           if (hasProfile) ...[
-            // Barra progresso
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
@@ -190,61 +335,14 @@ class _KcalBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Tre numeri
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _KcalCell(
-                  label: 'Obiettivo',
-                  value: target,
-                  unit: 'kcal',
-                  color: AppColors.peachDark,
-                  icon: '🎯',
-                ),
-                _KcalCell(
-                  label: 'Bruciate',
-                  value: daily.burnedKcal,
-                  unit: 'kcal',
-                  color: AppColors.mintDark,
-                  icon: '🏋️',
-                ),
-                _KcalCell(
-                  label: 'Consumate',
-                  value: daily.consumedKcal,
-                  unit: 'kcal',
-                  color: AppColors.lavenderDark,
-                  icon: '🍽️',
-                ),
-                _KcalCell(
-                  label: 'Rimanenti',
-                  value: net,
-                  unit: 'kcal',
-                  color: net >= 0 ? AppColors.mintDark : AppColors.blushDark,
-                  icon: net >= 0 ? '✅' : '⚠️',
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // Bottone aggiungi pasto
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showAddMealDialog(context, ref),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.mintDark),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.add_rounded, color: AppColors.mintDark, size: 18),
-                    label: const Text('Aggiungi pasto',
-                      style: TextStyle(color: AppColors.mintDark, fontSize: 13),
-                    ),
-                  ),
-                ),
+                _KcalCell(label: 'Obiettivo', value: target, color: AppColors.peachDark, icon: Icons.flag_rounded),
+                _KcalCell(label: 'Bruciate', value: daily.burnedKcal, color: AppColors.mintDark, icon: Icons.fitness_center_rounded),
+                _KcalCell(label: 'Consumate', value: daily.consumedKcal, color: AppColors.lavenderDark, icon: Icons.restaurant_rounded),
+                _KcalCell(label: 'Rimanenti', value: net, color: net >= 0 ? AppColors.mintDark : AppColors.blushDark,
+                  icon: net >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded),
               ],
             ),
           ] else ...[
@@ -263,21 +361,14 @@ class _KcalBanner extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24, right: 24, top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
+        padding: EdgeInsets.only(left: 24, right: 24, top: 24, bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Aggiungi pasto 🍽️',
-              style: Theme.of(ctx).textTheme.titleLarge,
-            ),
+            Text('Aggiungi pasto', style: Theme.of(ctx).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextFormField(
               autofocus: true,
@@ -292,19 +383,12 @@ class _KcalBanner extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Annulla'),
-                  ),
-                ),
+                Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla'))),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      if (kcal > 0) {
-                        ref.read(calorieProvider.notifier).addConsumed(kcal);
-                      }
+                      if (kcal > 0) ref.read(calorieProvider.notifier).addConsumed(kcal);
                       Navigator.pop(ctx);
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
@@ -323,191 +407,19 @@ class _KcalBanner extends StatelessWidget {
 class _KcalCell extends StatelessWidget {
   final String label;
   final int value;
-  final String unit;
   final Color color;
-  final String icon;
-
-  const _KcalCell({
-    required this.label,
-    required this.value,
-    required this.unit,
-    required this.color,
-    required this.icon,
-  });
+  final IconData icon;
+  const _KcalCell({required this.label, required this.value, required this.color, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 20)),
+        Icon(icon, color: color, size: 20),
         const SizedBox(height: 4),
-        Text('$value',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color),
-        ),
-        Text(unit, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        Text('$value', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color)),
+        Text('kcal', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
         Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-      ],
-    );
-  }
-}
-
-// ─── Fitness cards ────────────────────────────────────────────
-class _FitnessCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final Color bgColor;
-  final VoidCallback onTap;
-
-  const _FitnessCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.bgColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: color),
-            ),
-            Text(subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: color.withValues(alpha: 0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Weekly summary ───────────────────────────────────────────
-class _WeeklySummaryCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-    final completed = [true, true, false, true, false, false, false];
-    final today = DateTime.now().weekday - 1;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.peach.withValues(alpha: 0.5),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (i) => _DayDot(
-              label: days[i],
-              isCompleted: completed[i],
-              isToday: i == today,
-            )),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _StatChip(label: 'Allenamenti', value: '3', icon: Icons.bolt_rounded),
-              _StatChip(label: 'Calorie', value: '1840', icon: Icons.local_fire_department_rounded),
-              _StatChip(label: 'Streak', value: '5d', icon: Icons.emoji_events_rounded),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DayDot extends StatelessWidget {
-  final String label;
-  final bool isCompleted;
-  final bool isToday;
-
-  const _DayDot({required this.label, required this.isCompleted, required this.isToday});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-            color: isToday ? AppColors.peachDark : AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: isCompleted ? AppColors.peachDark : AppColors.divider,
-            shape: BoxShape.circle,
-            border: isToday ? Border.all(color: AppColors.peachDark, width: 2) : null,
-          ),
-          child: isCompleted
-            ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-            : null,
-        ),
-      ],
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  const _StatChip({required this.label, required this.value, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.peachDark, size: 20),
-        const SizedBox(height: 4),
-        Text(value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
       ],
     );
   }

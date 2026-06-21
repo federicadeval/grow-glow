@@ -51,3 +51,4 @@ lib/generated_plugin_registrant.dart
 # Misc
 *.log
 pubspec.lock
+.claude/

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/home/presentation/dashboard_screen.dart';
 import '../../features/fitness/presentation/screens/fitness_screen.dart';
 import '../../features/fitness/presentation/screens/workout_screen.dart';
 import '../../features/fitness/presentation/screens/diet_screen.dart';
@@ -11,20 +11,12 @@ import '../../features/beauty/presentation/screens/beauty_screen.dart';
 import '../../features/beauty/presentation/screens/routine_detail_screen.dart';
 import '../../features/todo/presentation/screens/todo_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/supplements/presentation/screens/supplement_screen.dart';
+import '../../features/cycle/presentation/screens/cycle_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
-    redirect: (context, state) {
-      final session = Supabase.instance.client.auth.currentSession;
-      final isAuth = session != null;
-      final isOnAuth = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
-
-      if (!isAuth && !isOnAuth) return '/login';
-      if (isAuth && isOnAuth) return '/';
-      return null;
-    },
     routes: [
       GoRoute(
         path: '/login',
@@ -43,7 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const FitnessScreen(),
+            builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
             path: '/fitness',
@@ -53,11 +45,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'workout',
                 builder: (context, state) => const WorkoutScreen(),
               ),
-              GoRoute(
-                path: 'diet',
-                builder: (context, state) => const DietScreen(),
-              ),
             ],
+          ),
+          GoRoute(
+            path: '/diet',
+            builder: (context, state) => const DietScreen(),
           ),
           GoRoute(
             path: '/beauty',
@@ -74,6 +66,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/todo',
             builder: (context, state) => const TodoScreen(),
+          ),
+          GoRoute(
+            path: '/supplements',
+            builder: (context, state) => const SupplementScreen(),
+          ),
+          GoRoute(
+            path: '/cycle',
+            builder: (context, state) => const CycleScreen(),
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/section_banner.dart';
 
 enum TodoPriority { low, medium, high }
 enum TodoCategory { personal, health, work, shopping }
@@ -64,7 +65,6 @@ class _TodoScreenState extends State<TodoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Todo List ✅')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addTodo,
         backgroundColor: AppColors.todoDark,
@@ -72,20 +72,30 @@ class _TodoScreenState extends State<TodoScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nuovo task'),
       ),
-      body: Column(
-        children: [
-          _CategoryFilter(
-            selected: _filterCategory,
-            onSelect: (cat) => setState(() =>
-              _filterCategory = _filterCategory == cat ? null : cat,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _CategoryFilter(
+              selected: _filterCategory,
+              onSelect: (cat) => setState(() =>
+                _filterCategory = _filterCategory == cat ? null : cat,
+              ),
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SectionBanner(
+                      icon: Icons.checklist_rounded,
+                      title: 'Le tue attività',
+                      subtitle: 'Organizza e completa i tuoi obiettivi',
+                      bgColor: AppColors.todo,
+                      fgColor: AppColors.todoDark,
+                    ),
+                    const SizedBox(height: 20),
                   _SummaryRow(total: _todos.length, done: _completed.length),
                   const SizedBox(height: 20),
                   if (_pending.isNotEmpty) ...[
@@ -119,7 +129,8 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -203,7 +214,7 @@ class _CategoryFilter extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(cat.emoji, style: const TextStyle(fontSize: 14)),
+                  Icon(cat.icon, size: 14, color: AppColors.todoDark),
                   const SizedBox(width: 6),
                   Text(cat.label,
                     style: TextStyle(
@@ -231,12 +242,12 @@ extension on TodoCategory {
       case TodoCategory.shopping: return 'Shopping';
     }
   }
-  String get emoji {
+  IconData get icon {
     switch (this) {
-      case TodoCategory.personal: return '🌸';
-      case TodoCategory.health: return '💚';
-      case TodoCategory.work: return '💼';
-      case TodoCategory.shopping: return '🛍️';
+      case TodoCategory.personal: return Icons.person_rounded;
+      case TodoCategory.health: return Icons.favorite_rounded;
+      case TodoCategory.work: return Icons.work_rounded;
+      case TodoCategory.shopping: return Icons.shopping_bag_rounded;
     }
   }
 }
@@ -330,7 +341,7 @@ class _TodoTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(todo.category.emoji, style: const TextStyle(fontSize: 12)),
+                        Icon(todo.category.icon, size: 12, color: AppColors.todoDark),
                         const SizedBox(width: 4),
                         Text(todo.category.label,
                           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
@@ -471,7 +482,7 @@ class _AddTodoSheetState extends State<_AddTodoSheet> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(cat.emoji, style: const TextStyle(fontSize: 14)),
+                    Icon(cat.icon, size: 14, color: AppColors.todoDark),
                     const SizedBox(width: 6),
                     Text(cat.label,
                       style: TextStyle(

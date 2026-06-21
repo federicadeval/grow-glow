@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/models/workout_model.dart';
 import '../../data/calorie_provider.dart';
+import '../../data/workout_weights_provider.dart';
 import 'workout_feedback_screen.dart';
 
 class WorkoutSessionScreen extends ConsumerStatefulWidget {
@@ -238,6 +239,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                     )
                   : _ExerciseView(
                       exercise: exercise,
+                      customWeight: ref.watch(workoutWeightsProvider)['${widget.workout.id}_$_exerciseIndex'],
                       exerciseIndex: _exerciseIndex,
                       totalExercises: widget.workout.exercises.length,
                       currentSet: _setIndex,
@@ -299,6 +301,7 @@ class _GlobalProgress extends StatelessWidget {
 // ─── Vista esercizio ─────────────────────────────────────────
 class _ExerciseView extends StatelessWidget {
   final Exercise exercise;
+  final String? customWeight;
   final int exerciseIndex;
   final int totalExercises;
   final int currentSet;
@@ -307,12 +310,23 @@ class _ExerciseView extends StatelessWidget {
 
   const _ExerciseView({
     required this.exercise,
+    this.customWeight,
     required this.exerciseIndex,
     required this.totalExercises,
     required this.currentSet,
     required this.completedSets,
     required this.onComplete,
   });
+
+  static String _formatWeight(String weight) {
+    final w = weight.trim();
+    // Legacy "Solo bilanciere (10 kg)" → "10 kg"
+    final prefixMatch = RegExp(r'^.+?\((\d+(?:\.\d+)?)\s*(kg(?:/lato)?)\)\s*$').firstMatch(w);
+    if (prefixMatch != null) return '${prefixMatch.group(1)} ${prefixMatch.group(2)}';
+    // Plain saved number → "6 kg"
+    if (RegExp(r'^\d+(?:\.\d+)?$').hasMatch(w)) return '$w kg';
+    return w;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -339,7 +353,7 @@ class _ExerciseView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _InfoChip(icon: Icons.repeat_rounded, label: '${exercise.reps} rip'),
-              _InfoChip(icon: Icons.monitor_weight_outlined, label: exercise.weight),
+              _InfoChip(icon: Icons.monitor_weight_outlined, label: _formatWeight(customWeight ?? exercise.weight)),
               _InfoChip(
                 icon: Icons.timer_outlined,
                 label: '${exercise.restSeconds ~/ 60}:${(exercise.restSeconds % 60).toString().padLeft(2, '0')} riposo',
@@ -576,7 +590,7 @@ class _CompletionDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(isPartial ? '💪' : '🎉', style: const TextStyle(fontSize: 56)),
+            Icon(isPartial ? Icons.fitness_center_rounded : Icons.celebration_rounded, size: 56, color: AppColors.peachDark),
             const SizedBox(height: 12),
             Text(isPartial ? 'Sessione terminata!' : 'Sessione completata!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -594,16 +608,16 @@ class _CompletionDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _StatItem(label: 'Durata', value: '$minutes min', icon: '⏱️'),
+                _StatItem(label: 'Durata', value: '$minutes min', icon: Icons.timer_rounded),
                 _StatItem(
                   label: 'Kcal stimate',
                   value: '~$kcal',
-                  icon: '🔥',
+                  icon: Icons.local_fire_department_rounded,
                 ),
                 _StatItem(
                   label: 'Esercizi',
                   value: '${workout.exercises.length}',
-                  icon: '💪',
+                  icon: Icons.fitness_center_rounded,
                 ),
               ],
             ),
@@ -649,7 +663,7 @@ class _CompletionDialog extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final String icon;
+  final IconData icon;
   const _StatItem({
     required this.label,
     required this.value,
@@ -660,7 +674,7 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 28)),
+        Icon(icon, size: 28, color: AppColors.peachDark),
         const SizedBox(height: 4),
         Text(value,
           style: const TextStyle(
