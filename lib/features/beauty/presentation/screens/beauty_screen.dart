@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/section_banner.dart';
+import '../../data/beauty_product_provider.dart';
+import '../../data/products_database.dart';
+import '../../data/weekly_routine_provider.dart';
+import '../../domain/product.dart';
+import '../../domain/weekly_routine.dart';
 import 'routine_detail_screen.dart';
 import 'skin_questionnaire_screen.dart';
 import 'skin_photos_screen.dart';
 import 'products_list_screen.dart';
+import 'weekly_routine_builder_screen.dart';
 
 // ─── Helpers ─────────────────────────────────────────────────
 String dateStr(DateTime d) =>
@@ -19,7 +26,7 @@ String _monthLabel(DateTime d) {
   return '${months[d.month]} ${d.year}';
 }
 
-// ─── Modello routine ──────────────────────────────────────────
+// ─── RoutineStep & RoutineId (legacy, kept for RoutineDetailScreen) ──────
 class RoutineStep {
   final String name;
   final String description;
@@ -45,86 +52,25 @@ enum RoutineId {
 extension RoutineIdData on RoutineId {
   String get label {
     switch (this) {
-      case RoutineId.morningStandard: return 'Routine Mattina';
-      case RoutineId.morningSaturday: return 'Routine Mattina (Sabato)';
-      case RoutineId.eveningRetinal: return 'Routine Sera';
+      case RoutineId.morningStandard:    return 'Routine Mattina';
+      case RoutineId.morningSaturday:    return 'Routine Mattina (Sabato)';
+      case RoutineId.eveningRetinal:     return 'Routine Sera';
       case RoutineId.eveningBuenosAires: return 'Routine Sera (Mercoledì)';
-      case RoutineId.eveningSunday: return 'Routine Sera (Domenica)';
+      case RoutineId.eveningSunday:      return 'Routine Sera (Domenica)';
     }
   }
 
   String get urlSegment {
     switch (this) {
-      case RoutineId.morningStandard: return 'morning_standard';
-      case RoutineId.morningSaturday: return 'morning_saturday';
-      case RoutineId.eveningRetinal: return 'evening_retinal';
+      case RoutineId.morningStandard:    return 'morning_standard';
+      case RoutineId.morningSaturday:    return 'morning_saturday';
+      case RoutineId.eveningRetinal:     return 'evening_retinal';
       case RoutineId.eveningBuenosAires: return 'evening_buenos_aires';
-      case RoutineId.eveningSunday: return 'evening_sunday';
+      case RoutineId.eveningSunday:      return 'evening_sunday';
     }
   }
 
-  List<RoutineStep> get steps {
-    switch (this) {
-      case RoutineId.morningStandard: return _morningStandard;
-      case RoutineId.morningSaturday: return _morningSaturday;
-      case RoutineId.eveningRetinal: return _eveningRetinal;
-      case RoutineId.eveningBuenosAires: return _eveningBuenosAires;
-      case RoutineId.eveningSunday: return _eveningSunday;
-    }
-  }
-}
-
-// ─── Step lists ───────────────────────────────────────────────
-const _morningStandard = [
-  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', icon: Icons.water_drop_rounded, productId: 'cerave_cleanser'),
-  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', icon: Icons.eco_rounded, productId: 'vitamina_c'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
-  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', icon: Icons.wb_sunny_rounded, productId: 'spf'),
-];
-
-const _morningSaturday = [
-  RoutineStep(name: 'CeraVe', description: 'Detergente idratante — massaggia sul viso bagnato, risciacqua.', icon: Icons.water_drop_rounded, productId: 'cerave_cleanser'),
-  RoutineStep(name: 'Bahia Blanca', description: 'Peeling/scrub — applica sul viso asciutto, massaggia delicatamente, risciacqua.', icon: Icons.stars_rounded, productId: 'bahia_blanca'),
-  RoutineStep(name: 'Vitamina C', description: 'Siero antiossidante — 2-3 gocce su viso e collo, tampona delicatamente.', icon: Icons.eco_rounded, productId: 'vitamina_c'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema anti-age L\'Oréal — stendi su tutto il viso.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
-  RoutineStep(name: 'SPF', description: 'Protezione solare — ultimo step, applica generosamente. Non saltare mai!', icon: Icons.wb_sunny_rounded, productId: 'spf'),
-];
-
-const _eveningRetinal = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
-  RoutineStep(name: 'Retinal', description: 'Retinaldeide — applica uno strato sottile su tutto il viso. Evita contorno occhi. Inizia 2-3 volte a settimana.', icon: Icons.nightlight_rounded, productId: 'retinal'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso per nutrire.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
-];
-
-const _eveningBuenosAires = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
-  RoutineStep(name: 'Buenos Aires', description: 'Acido esfoliante (BHA/AHA) — applica su viso asciutto. Non usare insieme al Retinal.', icon: Icons.science_rounded, productId: 'buenos_aires'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
-  RoutineStep(name: 'Revitalift', description: 'Siero/crema L\'Oréal — stendi su tutto il viso.', icon: Icons.auto_awesome_rounded, productId: 'revitalift'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer.', icon: Icons.spa_rounded, productId: 'lancome'),
-];
-
-const _eveningSunday = [
-  RoutineStep(name: 'Detersione doppia', description: 'Step 1: olio/acqua micellare per rimuovere trucco e SPF. Step 2: CeraVe in schiuma per pulizia profonda.', icon: Icons.cleaning_services_rounded, productId: 'cerave_foaming'),
-  RoutineStep(name: 'Bogotà', description: 'Applica il prodotto sul viso come da indicazioni. Lascia agire il tempo necessario, poi risciacqua se richiesto.', icon: Icons.eco_rounded, productId: 'bogota'),
-  RoutineStep(name: 'Acido ialuronico', description: 'Siero idratante — applica sul viso leggermente umido per massimizzare l\'assorbimento.', icon: Icons.water_rounded, productId: 'acido_ialuronico'),
-  RoutineStep(name: 'Lancôme', description: 'Crema idratante — sigilla tutti i layer. Morbido strato su viso e collo.', icon: Icons.spa_rounded, productId: 'lancome'),
-];
-
-// ─── Mappa giorno → routine ───────────────────────────────────
-// weekday: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun
-RoutineId morningRoutineFor(int weekday) {
-  return weekday == 6 ? RoutineId.morningSaturday : RoutineId.morningStandard;
-}
-
-RoutineId eveningRoutineFor(int weekday) {
-  if (weekday == 7) return RoutineId.eveningSunday;
-  if (weekday == 3) return RoutineId.eveningBuenosAires;
-  return RoutineId.eveningRetinal;
+  List<RoutineStep> get steps => const [];
 }
 
 String dayLabel(int weekday) {
@@ -152,15 +98,38 @@ class _DayCompletion {
   });
 }
 
+// ─── Step builder from product ────────────────────────────────
+RoutineStep _stepFromProduct(Product p) => RoutineStep(
+      name: p.shortName,
+      description: p.howToUse,
+      icon: p.icon,
+      productId: p.id,
+    );
+
+List<RoutineStep> _stepsFromIds(List<String> ids) =>
+    ids.map((id) => kProducts[id]).whereType<Product>().map(_stepFromProduct).toList();
+
+String? _specialNote(List<String> ids) {
+  for (final id in ids) {
+    final cat = kProducts[id]?.category;
+    if (cat == ProductCategory.retinoid) return kProducts[id]!.shortName;
+  }
+  for (final id in ids) {
+    final cat = kProducts[id]?.category;
+    if (cat == ProductCategory.exfoliant) return kProducts[id]!.shortName;
+  }
+  return null;
+}
+
 // ─── BeautyScreen ─────────────────────────────────────────────
-class BeautyScreen extends StatefulWidget {
+class BeautyScreen extends ConsumerStatefulWidget {
   const BeautyScreen({super.key});
 
   @override
-  State<BeautyScreen> createState() => _BeautyScreenState();
+  ConsumerState<BeautyScreen> createState() => _BeautyScreenState();
 }
 
-class _BeautyScreenState extends State<BeautyScreen> {
+class _BeautyScreenState extends ConsumerState<BeautyScreen> {
   late DateTime _today;
   late DateTime _selectedDate;
   Map<String, _DayCompletion> _completionCache = {};
@@ -172,6 +141,11 @@ class _BeautyScreenState extends State<BeautyScreen> {
     _selectedDate = _today;
     _loadCompletionCache();
   }
+
+  String _morningKey(int weekday, String ds) =>
+      'routine_completion_day${weekday}_morning_$ds';
+  String _eveningKey(int weekday, String ds) =>
+      'routine_completion_day${weekday}_evening_$ds';
 
   Future<void> _loadCompletionCache() async {
     final prefs = await SharedPreferences.getInstance();
@@ -185,15 +159,16 @@ class _BeautyScreenState extends State<BeautyScreen> {
       final ds = dateStr(date);
       final weekday = date.weekday;
 
-      final morningId = morningRoutineFor(weekday);
-      final eveningId = eveningRoutineFor(weekday);
-
-      final morningData = prefs.getString('routine_completion_${morningId.urlSegment}_$ds');
-      final eveningData = prefs.getString('routine_completion_${eveningId.urlSegment}_$ds');
+      final morningData = prefs.getString(_morningKey(weekday, ds));
+      final eveningData = prefs.getString(_eveningKey(weekday, ds));
 
       cache[ds] = _DayCompletion(
-        morningDone: morningData != null && morningData.isNotEmpty && !morningData.contains('0'),
-        eveningDone: eveningData != null && eveningData.isNotEmpty && !eveningData.contains('0'),
+        morningDone: morningData != null &&
+            morningData.isNotEmpty &&
+            !morningData.contains('0'),
+        eveningDone: eveningData != null &&
+            eveningData.isNotEmpty &&
+            !eveningData.contains('0'),
         morningStarted: morningData != null && morningData.contains('1'),
         eveningStarted: eveningData != null && eveningData.contains('1'),
       );
@@ -202,12 +177,31 @@ class _BeautyScreenState extends State<BeautyScreen> {
     if (mounted) setState(() => _completionCache = cache);
   }
 
-  void _openRoutine(RoutineId id) {
+  void _openRoutine(bool isMorning, DayRoutineConfig config) {
+    final ids =
+        isMorning ? config.morningProductIds : config.eveningProductIds;
+    if (ids.isEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => const WeeklyRoutineBuilderScreen()),
+      ).then((_) => _loadCompletionCache());
+      return;
+    }
+
+    final steps = _stepsFromIds(ids);
+    final weekday = _selectedDate.weekday;
+    final prefsKey =
+        isMorning ? 'day${weekday}_morning' : 'day${weekday}_evening';
+    final title = isMorning ? 'Routine Mattina' : 'Routine Sera';
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => RoutineDetailScreen(
-          routineId: id.urlSegment,
+          dynamicSteps: steps,
+          customPrefsKey: prefsKey,
+          customTitle: title,
           date: _selectedDate,
         ),
       ),
@@ -216,10 +210,17 @@ class _BeautyScreenState extends State<BeautyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final morningId = morningRoutineFor(_selectedDate.weekday);
-    final eveningId = eveningRoutineFor(_selectedDate.weekday);
+    final routine = ref.watch(weeklyRoutineProvider);
+    final beautyState = ref.watch(beautyProductProvider);
+    final activeCount = beautyState.activeIds.length;
+
+    final weekday = _selectedDate.weekday;
+    final dayConfig = routine[weekday] ?? DayRoutineConfig(weekday: weekday);
     final ds = dateStr(_selectedDate);
     final isToday = ds == dateStr(_today);
+
+    final morningIds = dayConfig.morningProductIds;
+    final eveningIds = dayConfig.eveningProductIds;
 
     return Scaffold(
       appBar: null,
@@ -239,114 +240,130 @@ class _BeautyScreenState extends State<BeautyScreen> {
               ),
               const SizedBox(height: 24),
 
-            Text(_monthLabel(_today),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _CalendarStrip(
-              selectedDate: _selectedDate,
-              today: _today,
-              completionCache: _completionCache,
-              onSelect: (d) => setState(() => _selectedDate = d),
-            ),
-            const SizedBox(height: 24),
+              Text(_monthLabel(_today),
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              _CalendarStrip(
+                selectedDate: _selectedDate,
+                today: _today,
+                completionCache: _completionCache,
+                onSelect: (d) => setState(() => _selectedDate = d),
+              ),
+              const SizedBox(height: 24),
 
-            Row(
-              children: [
-                Text(dayLabel(_selectedDate.weekday),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(width: 6),
-                Text('${_selectedDate.day}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.beautyDark,
-                  ),
-                ),
-                if (isToday) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.beautyDark,
-                      borderRadius: BorderRadius.circular(20),
+              Row(
+                children: [
+                  Text(dayLabel(_selectedDate.weekday),
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(width: 6),
+                  Text('${_selectedDate.day}',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.beautyDark,
+                          )),
+                  if (isToday) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.beautyDark,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text('oggi',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700)),
                     ),
-                    child: const Text('oggi',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
-                  ),
+                  ],
                 ],
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            _RoutineCard(
-              timeLabel: 'Mattina',
-              steps: morningId.steps.length,
-              specialNote: _selectedDate.weekday == 6 ? 'Bahia Blanca' : null,
-              isDone: _completionCache[ds]?.morningDone ?? false,
-              onTap: () => _openRoutine(morningId),
-            ),
-            const SizedBox(height: 10),
-            _RoutineCard(
-              timeLabel: 'Sera',
-              steps: eveningId.steps.length,
-              specialNote: _selectedDate.weekday == 7
-                  ? 'Bogotà'
-                  : _selectedDate.weekday == 3
-                      ? 'Buenos Aires (no Retinal)'
-                      : 'Retinal',
-              isDone: _completionCache[ds]?.eveningDone ?? false,
-              onTap: () => _openRoutine(eveningId),
-            ),
-            const SizedBox(height: 28),
-
-            Text('I miei prodotti',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _ProgressCard(
-              icon: Icons.spa_rounded,
-              title: 'Tutti i prodotti',
-              subtitle: 'Schede dettagliate di ogni prodotto nella tua routine',
-              color: AppColors.mintDark,
-              bgColor: AppColors.mint,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProductsListScreen()),
               ),
-            ),
-            const SizedBox(height: 28),
+              const SizedBox(height: 12),
 
-            Text('Monitora i progressi',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _ProgressCard(
-              icon: Icons.manage_search_rounded,
-              title: 'Check-up pelle',
-              subtitle: 'Questionario su idratazione, luminosità e imperfezioni',
-              color: AppColors.lavenderDark,
-              bgColor: AppColors.lavender,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SkinQuestionnaireScreen()),
+              _RoutineCard(
+                timeLabel: 'Mattina',
+                steps: morningIds.length,
+                specialNote: _specialNote(morningIds),
+                isDone: _completionCache[ds]?.morningDone ?? false,
+                isEmpty: morningIds.isEmpty,
+                onTap: () => _openRoutine(true, dayConfig),
               ),
-            ),
-            const SizedBox(height: 10),
-            _ProgressCard(
-              icon: Icons.photo_camera_rounded,
-              title: 'Foto progressi',
-              subtitle: 'Documenta il percorso della tua pelle nel tempo',
-              color: AppColors.beautyDark,
-              bgColor: AppColors.beauty,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SkinPhotosScreen()),
+              const SizedBox(height: 10),
+              _RoutineCard(
+                timeLabel: 'Sera',
+                steps: eveningIds.length,
+                specialNote: _specialNote(eveningIds),
+                isDone: _completionCache[ds]?.eveningDone ?? false,
+                isEmpty: eveningIds.isEmpty,
+                onTap: () => _openRoutine(false, dayConfig),
               ),
-            ),
-          ],
+              const SizedBox(height: 28),
+
+              Text('I miei prodotti',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+
+              _ProgressCard(
+                icon: Icons.spa_rounded,
+                title: 'Catalogo prodotti',
+                subtitle: activeCount > 0
+                    ? '$activeCount prodotti attivi — tocca per gestire il tuo arsenale'
+                    : 'Attiva i prodotti che possiedi per costruire la tua routine',
+                color: AppColors.mintDark,
+                bgColor: AppColors.mint,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ProductsListScreen()),
+                ).then((_) => setState(() {})),
+              ),
+              const SizedBox(height: 10),
+
+              _ProgressCard(
+                icon: Icons.calendar_month_rounded,
+                title: 'Routine settimanale',
+                subtitle: 'Costruisci la tua routine giorno per giorno',
+                color: AppColors.beautyDark,
+                bgColor: AppColors.beauty,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const WeeklyRoutineBuilderScreen()),
+                ).then((_) => _loadCompletionCache()),
+              ),
+              const SizedBox(height: 28),
+
+              Text('Monitora i progressi',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              _ProgressCard(
+                icon: Icons.manage_search_rounded,
+                title: 'Check-up pelle',
+                subtitle: 'Questionario su idratazione, luminosità e imperfezioni',
+                color: AppColors.lavenderDark,
+                bgColor: AppColors.lavender,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const SkinQuestionnaireScreen()),
+                ),
+              ),
+              const SizedBox(height: 10),
+              _ProgressCard(
+                icon: Icons.photo_camera_rounded,
+                title: 'Foto progressi',
+                subtitle: 'Documenta il percorso della tua pelle nel tempo',
+                color: AppColors.beautyDark,
+                bgColor: AppColors.beauty,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const SkinPhotosScreen()),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -379,7 +396,8 @@ class _CalendarStripState extends State<_CalendarStrip> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToDay(widget.selectedDate.day));
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _scrollToDay(widget.selectedDate.day));
   }
 
   @override
@@ -393,7 +411,7 @@ class _CalendarStripState extends State<_CalendarStrip> {
     final offset = (day - 1) * (_itemWidth + _itemGap) -
         MediaQuery.of(context).size.width / 2 +
         _itemWidth / 2 +
-        20; // compensate page padding
+        20;
     _scrollController.jumpTo(
       offset.clamp(0.0, _scrollController.position.maxScrollExtent),
     );
@@ -404,7 +422,8 @@ class _CalendarStripState extends State<_CalendarStrip> {
     final year = widget.today.year;
     final month = widget.today.month;
     final daysInMonth = DateTime(year, month + 1, 0).day;
-    final todayMidnight = DateTime(widget.today.year, widget.today.month, widget.today.day);
+    final todayMidnight =
+        DateTime(widget.today.year, widget.today.month, widget.today.day);
 
     return SizedBox(
       height: 76,
@@ -441,24 +460,25 @@ class _CalendarStripState extends State<_CalendarStrip> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(shortDayLabel(date.weekday),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
-                    ),
-                  ),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                      )),
                   const SizedBox(height: 2),
                   Text('${date.day}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? Colors.white
-                          : isFuture
-                              ? AppColors.textSecondary.withValues(alpha: 0.35)
-                              : AppColors.textPrimary,
-                    ),
-                  ),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? Colors.white
+                            : isFuture
+                                ? AppColors.textSecondary
+                                    .withValues(alpha: 0.35)
+                                : AppColors.textPrimary,
+                      )),
                   const SizedBox(height: 4),
                   if (!isFuture)
                     Row(
@@ -527,6 +547,7 @@ class _RoutineCard extends StatelessWidget {
   final int steps;
   final String? specialNote;
   final bool isDone;
+  final bool isEmpty;
   final VoidCallback onTap;
 
   const _RoutineCard({
@@ -534,6 +555,7 @@ class _RoutineCard extends StatelessWidget {
     required this.steps,
     required this.onTap,
     required this.isDone,
+    required this.isEmpty,
     this.specialNote,
   });
 
@@ -561,64 +583,82 @@ class _RoutineCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(timeLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.beautyDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.format_list_numbered_rounded, size: 13, color: AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Text('$steps step',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                      if (specialNote != null) ...[
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.beauty,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(specialNote!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.beautyDark,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (isDone) ...[
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.beautyDark,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text('Fatto ✓',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                          )),
+                  const SizedBox(height: 4),
+                  if (isEmpty)
+                    const Text(
+                      'Tocca per configurare la routine',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    )
+                  else
+                    Row(
+                      children: [
+                        const Icon(Icons.format_list_numbered_rounded,
+                            size: 13, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text('$steps step',
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary)),
+                        if (specialNote != null) ...[
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.beauty,
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            child: Text(specialNote!,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.beautyDark,
+                                )),
                           ),
-                        ),
+                        ],
+                        if (isDone) ...[
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.beautyDark,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text('Fatto ✓',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                )),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
+                    ),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.beauty,
+                color: isEmpty
+                    ? AppColors.divider
+                    : AppColors.beauty,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.beautyDark, size: 16),
+              child: Icon(
+                isEmpty
+                    ? Icons.add_rounded
+                    : Icons.arrow_forward_ios_rounded,
+                color: isEmpty
+                    ? AppColors.textSecondary
+                    : AppColors.beautyDark,
+                size: 16,
+              ),
             ),
           ],
         ),
@@ -670,9 +710,7 @@ class _ProgressCard extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Center(
-                child: Icon(icon, size: 26, color: color),
-              ),
+              child: Center(child: Icon(icon, size: 26, color: color)),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -680,12 +718,16 @@ class _ProgressCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: color),
-                  ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(color: color)),
                   const SizedBox(height: 3),
                   Text(subtitle,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
-                  ),
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.3)),
                 ],
               ),
             ),

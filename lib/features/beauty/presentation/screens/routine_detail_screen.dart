@@ -5,9 +5,24 @@ import 'beauty_screen.dart';
 import 'product_detail_screen.dart';
 
 class RoutineDetailScreen extends StatefulWidget {
-  final String routineId;
+  // Legacy: looked up in RoutineId enum
+  final String? routineId;
+  // New: explicit steps for user-configured routines
+  final List<RoutineStep>? dynamicSteps;
+  // Prefs key prefix for storing completion (defaults to routineId)
+  final String? customPrefsKey;
+  // Title override (defaults to routineId label)
+  final String? customTitle;
   final DateTime? date;
-  const RoutineDetailScreen({super.key, required this.routineId, this.date});
+
+  const RoutineDetailScreen({
+    super.key,
+    this.routineId,
+    this.dynamicSteps,
+    this.customPrefsKey,
+    this.customTitle,
+    this.date,
+  });
 
   @override
   State<RoutineDetailScreen> createState() => _RoutineDetailScreenState();
@@ -16,26 +31,35 @@ class RoutineDetailScreen extends StatefulWidget {
 class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
   late List<bool> _completed;
 
-  RoutineId get _routineId {
+  RoutineId? get _legacyRoutineId {
+    if (widget.dynamicSteps != null) return null;
     switch (widget.routineId) {
-      case 'morning_standard': return RoutineId.morningStandard;
-      case 'morning_saturday': return RoutineId.morningSaturday;
-      case 'evening_retinal': return RoutineId.eveningRetinal;
-      case 'evening_buenos_aires': return RoutineId.eveningBuenosAires;
-      case 'evening_sunday': return RoutineId.eveningSunday;
-      // legacy IDs
-      case 'morning': return RoutineId.morningStandard;
-      case 'evening': return RoutineId.eveningRetinal;
-      default: return RoutineId.morningStandard;
+      case 'morning_standard':    return RoutineId.morningStandard;
+      case 'morning_saturday':    return RoutineId.morningSaturday;
+      case 'evening_retinal':     return RoutineId.eveningRetinal;
+      case 'evening_buenos_aires':return RoutineId.eveningBuenosAires;
+      case 'evening_sunday':      return RoutineId.eveningSunday;
+      case 'morning':             return RoutineId.morningStandard;
+      case 'evening':             return RoutineId.eveningRetinal;
+      default:                    return RoutineId.morningStandard;
     }
   }
 
-  List<RoutineStep> get _steps => _routineId.steps;
+  List<RoutineStep> get _steps =>
+      widget.dynamicSteps ?? _legacyRoutineId?.steps ?? [];
 
-  bool get _allDone => _completed.isNotEmpty && _completed.every((c) => c);
+  String get _title =>
+      widget.customTitle ??
+      _legacyRoutineId?.label ??
+      'Routine';
 
-  String get _prefsKey =>
-      'routine_completion_${widget.routineId}_${dateStr(widget.date ?? DateTime.now())}';
+  bool get _allDone =>
+      _completed.isNotEmpty && _completed.every((c) => c);
+
+  String get _prefsKey {
+    final key = widget.customPrefsKey ?? widget.routineId ?? 'unknown';
+    return 'routine_completion_${key}_${dateStr(widget.date ?? DateTime.now())}';
+  }
 
   @override
   void initState() {
@@ -47,7 +71,8 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
   @override
   void didUpdateWidget(RoutineDetailScreen old) {
     super.didUpdateWidget(old);
-    if (old.routineId != widget.routineId) {
+    if (old.routineId != widget.routineId ||
+        old.customPrefsKey != widget.customPrefsKey) {
       _completed = List<bool>.filled(_steps.length, false);
       _loadCompleted();
     }
@@ -65,17 +90,19 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
 
   Future<void> _saveCompleted() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefsKey, _completed.map((c) => c ? '1' : '0').join());
+    await prefs.setString(
+        _prefsKey, _completed.map((c) => c ? '1' : '0').join());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_routineId.label)),
+      appBar: AppBar(title: Text(_title)),
       body: Column(
         children: [
-          // Barra progresso
-          _ProgressHeader(done: _completed.where((c) => c).length, total: _steps.length),
+          _ProgressHeader(
+              done: _completed.where((c) => c).length,
+              total: _steps.length),
 
           Expanded(
             child: SingleChildScrollView(
@@ -84,20 +111,29 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                 children: [
                   if (_allDone) _CompletedBanner(),
                   const SizedBox(height: 4),
-                  ...List.generate(_steps.length, (i) => _StepTile(
-                    step: _steps[i],
-                    index: i + 1,
-                    isCompleted: _completed[i],
-                    onToggle: () {
-                      setState(() => _completed[i] = !_completed[i]);
-                      _saveCompleted();
-                    },
-                    onInfo: _steps[i].productId != null ? () {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => ProductDetailScreen(productId: _steps[i].productId!),
-                      ));
-                    } : null,
-                  )),
+                  ...List.generate(
+                    _steps.length,
+                    (i) => _StepTile(
+                      step: _steps[i],
+                      index: i + 1,
+                      isCompleted: _completed[i],
+                      onToggle: () {
+                        setState(() => _completed[i] = !_completed[i]);
+                        _saveCompleted();
+                      },
+                      onInfo: _steps[i].productId != null
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductDetailScreen(
+                                      productId: _steps[i].productId!),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -123,8 +159,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: const Text('Segna tutto come fatto ✓',
-                      style: TextStyle(fontSize: 15),
-                    ),
+                        style: TextStyle(fontSize: 15)),
                   ),
                 ),
               ),
@@ -151,19 +186,17 @@ class _ProgressHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('$done / $total step completati',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.beautyDark,
-                ),
-              ),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.beautyDark,
+                  )),
               Text('${(progress * 100).round()}%',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.beautyDark,
-                ),
-              ),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.beautyDark,
+                  )),
             ],
           ),
           const SizedBox(height: 6),
@@ -172,7 +205,8 @@ class _ProgressHeader extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               backgroundColor: AppColors.beauty.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.beautyDark),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.beautyDark),
               minHeight: 7,
             ),
           ),
@@ -197,20 +231,19 @@ class _CompletedBanner extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.celebration_rounded, size: 36, color: AppColors.beautyDark),
+          const Icon(Icons.celebration_rounded,
+              size: 36, color: AppColors.beautyDark),
           const SizedBox(height: 8),
           Text('Routine completata!',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.beautyDark,
-            ),
-          ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.beautyDark,
+                  )),
           const SizedBox(height: 4),
           Text('La tua pelle ti ringrazierà',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.beautyDark.withValues(alpha: 0.8),
-            ),
-          ),
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.beautyDark.withValues(alpha: 0.8),
+              )),
         ],
       ),
     );
@@ -243,18 +276,19 @@ class _StepTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isCompleted ? AppColors.beauty : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: isCompleted ? null : [
-            BoxShadow(
-              color: AppColors.lavender.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: isCompleted
+              ? null
+              : [
+                  BoxShadow(
+                    color: AppColors.lavender.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Numero / check
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 36,
@@ -264,15 +298,14 @@ class _StepTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: isCompleted
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-                : Center(
-                    child: Text('$index',
-                      style: const TextStyle(
-                        color: AppColors.beautyDark,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                  ? const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 20)
+                  : Center(
+                      child: Text('$index',
+                          style: const TextStyle(
+                            color: AppColors.beautyDark,
+                            fontWeight: FontWeight.w700,
+                          ))),
             ),
             const SizedBox(width: 12),
             Icon(step.icon, size: 22, color: AppColors.beautyDark),
@@ -282,21 +315,21 @@ class _StepTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(step.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
-                      color: isCompleted
-                        ? AppColors.beautyDark.withValues(alpha: 0.6)
-                        : AppColors.textPrimary,
-                    ),
-                  ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            decoration: isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: isCompleted
+                                ? AppColors.beautyDark.withValues(alpha: 0.6)
+                                : AppColors.textPrimary,
+                          )),
                   const SizedBox(height: 3),
                   Text(step.description,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      )),
                 ],
               ),
             ),
