@@ -237,6 +237,10 @@ class _C25KSessionScreenState extends ConsumerState<C25KSessionScreen>
           isLastWeek: widget.weekIndex == 8,
           elapsedMinutes: _totalElapsed ~/ 60,
           kcalBurned: _kcalBurned.round(),
+          onComplete: () {
+            Navigator.of(context).pop(); // dismiss dialog
+            Navigator.of(context).pop(); // pop session screen
+          },
         );
       },
     );
@@ -511,12 +515,14 @@ class _C25KCompletionDialog extends StatelessWidget {
   final bool isLastWeek;
   final int elapsedMinutes;
   final int kcalBurned;
+  final VoidCallback onComplete;
 
   const _C25KCompletionDialog({
     required this.weekLabel,
     required this.isLastWeek,
     required this.elapsedMinutes,
     required this.kcalBurned,
+    required this.onComplete,
   });
 
   @override
@@ -563,10 +569,7 @@ class _C25KCompletionDialog extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
+                onPressed: onComplete,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mintDark,
                 ),

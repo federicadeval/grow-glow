@@ -401,8 +401,7 @@ class _WeekCard extends StatelessWidget {
   });
 
   void _startSession(BuildContext context) {
-    Navigator.push(
-      context,
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => C25KSessionScreen(
           weekIndex: weekNumber - 1,
