@@ -544,7 +544,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
               const SizedBox(height: 12),
               TextField(
                 controller: ctrl,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Grammi', suffixText: 'g'),
                 autofocus: true,
               ),
@@ -554,7 +554,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
             ElevatedButton(
               onPressed: () {
-                final g = double.tryParse(ctrl.text) ?? 100;
+                final g = double.tryParse(ctrl.text.replaceAll(',', '.')) ?? 100;
                 setState(() {
                   _ingredients.add(Ingredient(
                     name: food.name,
@@ -645,7 +645,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
                             labelText: 'Kcal manuali (se non usi ingredienti)',
                             suffixText: 'kcal',
                           ),
-                          keyboardType: TextInputType.number,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           onChanged: (_) => setState(() {}),
                         ),
                       const SizedBox(height: 12),
@@ -982,7 +982,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
               const SizedBox(height: 16),
               TextField(
                 controller: gramsCtrl,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Grammi da aggiungere', suffixText: 'g'),
                 autofocus: true,
               ),
@@ -992,7 +992,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
             ElevatedButton(
               onPressed: () {
-                final g = double.tryParse(gramsCtrl.text) ?? 100;
+                final g = double.tryParse(gramsCtrl.text.replaceAll(',', '.')) ?? 100;
                 final displayName = brand.isNotEmpty ? '$name ($brand)' : name;
                 setState(() {
                   _ingredients.add(Ingredient(
@@ -1057,13 +1057,13 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
                 Row(children: [
                   Expanded(child: TextField(
                     controller: kcalCtrl,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'Kcal *', suffixText: 'kcal'),
                   )),
                   const SizedBox(width: 8),
                   Expanded(child: TextField(
                     controller: proteinCtrl,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'Proteine', suffixText: 'g'),
                   )),
                 ]),
@@ -1071,13 +1071,13 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
                 Row(children: [
                   Expanded(child: TextField(
                     controller: carbsCtrl,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'Carboidrati', suffixText: 'g'),
                   )),
                   const SizedBox(width: 8),
                   Expanded(child: TextField(
                     controller: fatCtrl,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'Grassi', suffixText: 'g'),
                   )),
                 ]),
@@ -1099,10 +1099,10 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTicke
               onPressed: () {
                 final name = nameCtrl.text.trim();
                 if (name.isEmpty) return;
-                final kcal = double.tryParse(kcalCtrl.text) ?? 0;
-                final protein = double.tryParse(proteinCtrl.text) ?? 0;
-                final carbs = double.tryParse(carbsCtrl.text) ?? 0;
-                final fat = double.tryParse(fatCtrl.text) ?? 0;
+                final kcal = double.tryParse(kcalCtrl.text.replaceAll(',', '.')) ?? 0;
+                final protein = double.tryParse(proteinCtrl.text.replaceAll(',', '.')) ?? 0;
+                final carbs = double.tryParse(carbsCtrl.text.replaceAll(',', '.')) ?? 0;
+                final fat = double.tryParse(fatCtrl.text.replaceAll(',', '.')) ?? 0;
                 final brand = brandCtrl.text.trim();
 
                 if (saveToDb) {
