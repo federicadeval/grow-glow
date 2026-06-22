@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/section_banner.dart';
 import '../../../profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
+import '../../data/meal_plan_provider.dart';
 import '../../domain/models/workout_model.dart';
 import 'workout_history_screen.dart';
 import 'workout_screen.dart';
@@ -59,6 +60,8 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
     final daily = ref.watch(calorieProvider);
+    final mealPlan = ref.watch(mealPlanProvider);
+    final todayConsumedKcal = mealPlan.plan.day(DateTime.now().weekday - 1).totalKcal;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -153,7 +156,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _KcalBanner(profile: profile, daily: daily, ref: ref),
+                    _KcalBanner(profile: profile, daily: daily, consumedKcal: todayConsumedKcal, ref: ref),
                     const SizedBox(height: 24),
 
                     Text('Le mie schede',
@@ -274,15 +277,16 @@ class _StatPill extends StatelessWidget {
 class _KcalBanner extends StatelessWidget {
   final dynamic profile;
   final DailyCalories daily;
+  final int consumedKcal;
   final WidgetRef ref;
 
-  const _KcalBanner({required this.profile, required this.daily, required this.ref});
+  const _KcalBanner({required this.profile, required this.daily, required this.consumedKcal, required this.ref});
 
   @override
   Widget build(BuildContext context) {
     final target = profile?.effectiveKcal ?? 2000;
-    final net = target + daily.burnedKcal - daily.consumedKcal;
-    final progress = target > 0 ? (daily.consumedKcal / target).clamp(0.0, 1.0) : 0.0;
+    final net = target + daily.burnedKcal - consumedKcal;
+    final progress = target > 0 ? (consumedKcal / target).clamp(0.0, 1.0) : 0.0;
     final hasProfile = profile != null;
 
     return Container(
@@ -340,7 +344,7 @@ class _KcalBanner extends StatelessWidget {
               children: [
                 _KcalCell(label: 'Obiettivo', value: target, color: AppColors.peachDark, icon: Icons.flag_rounded),
                 _KcalCell(label: 'Bruciate', value: daily.burnedKcal, color: AppColors.mintDark, icon: Icons.fitness_center_rounded),
-                _KcalCell(label: 'Consumate', value: daily.consumedKcal, color: AppColors.lavenderDark, icon: Icons.restaurant_rounded),
+                _KcalCell(label: 'Consumate', value: consumedKcal, color: AppColors.lavenderDark, icon: Icons.restaurant_rounded),
                 _KcalCell(label: 'Rimanenti', value: net, color: net >= 0 ? AppColors.mintDark : AppColors.blushDark,
                   icon: net >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded),
               ],

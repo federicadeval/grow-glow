@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../cycle/data/cycle_provider.dart';
 import '../../cycle/domain/cycle_entry.dart';
 import '../../fitness/data/calorie_provider.dart';
+import '../../fitness/data/meal_plan_provider.dart';
 import '../../profile/data/profile_provider.dart';
 import '../data/water_provider.dart';
 
@@ -16,6 +17,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final calories = ref.watch(calorieProvider);
+    final mealPlan = ref.watch(mealPlanProvider);
     final profile = ref.watch(profileProvider);
     final waterMl = ref.watch(waterProvider);
     final now = DateTime.now();
@@ -23,8 +25,9 @@ class DashboardScreen extends ConsumerWidget {
     final greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
 
     final targetKcal = profile?.effectiveKcal ?? 2000;
-    final remaining = (targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999);
-    final kcalProgress = (calories.consumedKcal / targetKcal).clamp(0.0, 1.0);
+    final consumedKcal = mealPlan.plan.day(now.weekday - 1).totalKcal;
+    final remaining = (targetKcal - consumedKcal + calories.burnedKcal).clamp(0, 99999);
+    final kcalProgress = (consumedKcal / targetKcal).clamp(0.0, 1.0);
     final waterL = waterMl / 1000.0;
 
     return Scaffold(
@@ -37,7 +40,7 @@ class DashboardScreen extends ConsumerWidget {
             _HeroBlock(
               greeting: greeting,
               now: now,
-              consumedKcal: calories.consumedKcal,
+              consumedKcal: consumedKcal,
               targetKcal: targetKcal,
               remaining: remaining,
               kcalProgress: kcalProgress,

@@ -144,7 +144,7 @@ class DayMeals {
     this.spuntino = MealEntry.empty,
   });
 
-  int get totalKcal => colazione.kcal + pranzo.kcal + cena.kcal + spuntino.kcal;
+  int get totalKcal => colazione.effectiveKcal + pranzo.effectiveKcal + cena.effectiveKcal + spuntino.effectiveKcal;
 
   MealEntry getByType(MealType type) {
     switch (type) {

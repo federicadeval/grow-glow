@@ -35,6 +35,7 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     final profile = ref.watch(profileProvider);
     final calories = ref.watch(calorieProvider);
     final targetKcal = profile?.effectiveKcal ?? 2000;
+    final todayConsumedKcal = planState.plan.day(DateTime.now().weekday - 1).totalKcal;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,10 +67,10 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _KcalPill(Icons.flag_rounded, 'Obiettivo', '$targetKcal'),
-                          _KcalPill(Icons.restaurant_rounded, 'Consumate', '${calories.consumedKcal}'),
+                          _KcalPill(Icons.restaurant_rounded, 'Consumate', '$todayConsumedKcal'),
                           _KcalPill(Icons.fitness_center_rounded, 'Bruciate', '${calories.burnedKcal}'),
                           _KcalPill(Icons.check_circle_rounded, 'Rimanenti',
-                            '${(targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
+                            '${(targetKcal - todayConsumedKcal + calories.burnedKcal).clamp(0, 99999)}'),
                         ],
                       ),
                     ),
@@ -227,12 +228,6 @@ class _DietScreenState extends ConsumerState<DietScreen> {
         current: current,
         onSave: (entry) {
           ref.read(mealPlanProvider.notifier).setMeal(_selectedDay, type, entry);
-          if (_isToday && !current.isEmpty) {
-            ref.read(calorieProvider.notifier).removeConsumed(current.kcal);
-          }
-          if (_isToday && !entry.isEmpty) {
-            ref.read(calorieProvider.notifier).addConsumed(entry.kcal);
-          }
         },
       ),
     );
