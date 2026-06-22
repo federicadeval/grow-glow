@@ -23,6 +23,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late DietStyle _dietStyle;
   late List<String> _intolerances;
   late TextEditingController _foodsToAvoidCtrl;
+  late TextEditingController _customKcalCtrl;
 
   bool _initialized = false;
 
@@ -35,12 +36,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _dietStyle = p.dietStyle;
     _intolerances = List.from(p.intolerances);
     _foodsToAvoidCtrl = TextEditingController(text: p.foodsToAvoid);
+    _customKcalCtrl = TextEditingController(
+      text: p.customKcalGoal != null ? '${p.customKcalGoal}' : '',
+    );
     _initialized = true;
   }
 
   @override
   void dispose() {
-    if (_initialized) _foodsToAvoidCtrl.dispose();
+    if (_initialized) {
+      _foodsToAvoidCtrl.dispose();
+      _customKcalCtrl.dispose();
+    }
     super.dispose();
   }
 
@@ -52,6 +59,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _initFrom(profile ?? UserProfile.defaultProfile);
     }
 
+    final customKcal = int.tryParse(_customKcalCtrl.text.trim());
+
     final preview = UserProfile(
       age: _age,
       gender: _gender,
@@ -61,6 +70,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       dietStyle: _dietStyle,
       intolerances: _intolerances,
       foodsToAvoid: _foodsToAvoidCtrl.text,
+      customKcalGoal: customKcal,
     );
 
     return Scaffold(
@@ -82,6 +92,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               // Riepilogo kcal suggerite
               _KcalPreviewCard(profile: preview),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _customKcalCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Obiettivo personalizzato (opzionale)',
+                  hintText: 'Lascia vuoto per usare il valore suggerito',
+                  suffixText: 'kcal',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
               const SizedBox(height: 24),
 
               _SectionTitle('Dati personali'),
@@ -256,7 +279,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(height: 32),
               const Divider(color: AppColors.divider),
               const SizedBox(height: 24),
-              const _CycleSection(),
+              const _CycleSettingsSection(),
               const SizedBox(height: 40),
             ],
           ),
@@ -275,6 +298,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       dietStyle: _dietStyle,
       intolerances: List.from(_intolerances),
       foodsToAvoid: _foodsToAvoidCtrl.text.trim(),
+      customKcalGoal: int.tryParse(_customKcalCtrl.text.trim()),
     );
     await ref.read(profileProvider.notifier).save(profile);
     if (mounted) {
@@ -398,6 +422,7 @@ class _KcalPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCustom = profile.customKcalGoal != null;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -412,22 +437,30 @@ class _KcalPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Kcal giornaliere suggerite',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.peachDark.withValues(alpha: 0.8),
-            ),
+          Row(
+            children: [
+              Text(
+                isCustom ? 'Kcal giornaliere (personalizzato)' : 'Kcal giornaliere suggerite',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.peachDark.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
-          Text('${profile.suggestedKcal} kcal',
+          Text('${profile.effectiveKcal} kcal',
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
               color: AppColors.peachDark,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
-          Text('Obiettivo: ${profile.goal.label}  ·  TDEE: ${profile.tdee.round()} kcal',
+          Text(
+            isCustom
+              ? 'Suggerito: ${profile.suggestedKcal} kcal  ·  TDEE: ${profile.tdee.round()} kcal'
+              : 'Obiettivo: ${profile.goal.label}  ·  TDEE: ${profile.tdee.round()} kcal',
             style: TextStyle(fontSize: 12, color: AppColors.peachDark.withValues(alpha: 0.7)),
           ),
         ],
@@ -494,10 +527,13 @@ class _MacroItem extends StatelessWidget {
   }
 }
 
-// ─── Cycle section ────────────────────────────────────────────
+// ─── Cycle settings (profile) ─────────────────────────────────
 
-class _CycleSection extends ConsumerWidget {
-  const _CycleSection();
+class _CycleSettingsSection extends ConsumerWidget {
+  const _CycleSettingsSection();
+
+  static const _mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu',
+                         'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -505,440 +541,100 @@ class _CycleSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Ciclo mestruale',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-            ),
-            if (cycle.lastEntry != null)
-              GestureDetector(
-                onTap: () => _confirmDelete(context, ref),
-                child: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.textSecondary),
-              ),
-          ],
+        const Text('Ciclo mestruale',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 14),
-        if (cycle.lastEntry == null)
-          _CycleEmptyState(onStart: () => _pickAndLogStart(context, ref))
-        else ...[
-          _CycleStatusCard(cycle: cycle),
-          const SizedBox(height: 14),
-          _CyclePhaseBar(cycle: cycle),
-          const SizedBox(height: 14),
-          _CycleMonthCalendar(cycle: cycle),
-          const SizedBox(height: 16),
-          _CycleActionButtons(cycle: cycle,
-            onStart: () => _pickAndLogStart(context, ref),
-            onEnd: () => _pickAndLogEnd(context, ref),
-          ),
-          const SizedBox(height: 14),
-          _CycleSettingsRow(cycle: cycle),
-        ],
-      ],
-    );
-  }
 
-  Future<void> _pickAndLogStart(BuildContext context, WidgetRef ref) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-      helpText: 'Inizio ciclo',
-    );
-    if (date != null) {
-      await ref.read(cycleProvider.notifier).logPeriodStart(date);
-    }
-  }
-
-  Future<void> _pickAndLogEnd(BuildContext context, WidgetRef ref) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 14)),
-      lastDate: DateTime.now(),
-      helpText: 'Fine mestruazioni',
-    );
-    if (date != null) {
-      await ref.read(cycleProvider.notifier).endCurrentPeriod(date);
-    }
-  }
-
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Rimuovi ultimo ciclo?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annulla')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Rimuovi')),
-        ],
-      ),
-    );
-    if (ok == true) ref.read(cycleProvider.notifier).deleteLast();
-  }
-}
-
-class _CycleEmptyState extends StatelessWidget {
-  final VoidCallback onStart;
-  const _CycleEmptyState({required this.onStart});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2C4CE).withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF2C4CE)),
-      ),
-      child: Column(
-        children: [
-          const Text('🌸', style: TextStyle(fontSize: 32)),
-          const SizedBox(height: 10),
-          const Text('Inizia a tracciare il tuo ciclo',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          const Text('Registra il primo giorno del tuo ciclo\nper vedere fasi, previsioni e calendario.',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: onStart,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B2040),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Text('Inizia ciclo oggi',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CycleStatusCard extends StatelessWidget {
-  final CycleState cycle;
-  const _CycleStatusCard({required this.cycle});
-
-  @override
-  Widget build(BuildContext context) {
-    final phase = cycle.currentPhase!;
-    final day = cycle.currentCycleDay!;
-    final next = cycle.nextPeriodDate!;
-    final daysLeft = cycle.daysToNextPeriod!;
-    final mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: phase.color.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: phase.color),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52, height: 52,
-            decoration: BoxDecoration(
-              color: phase.color,
-              shape: BoxShape.circle,
-            ),
-            child: Center(child: Text(phase.emoji, style: const TextStyle(fontSize: 24))),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(phase.label,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: phase.darkColor),
-                ),
-                Text('Giorno $day del ciclo',
-                  style: TextStyle(fontSize: 12, color: phase.darkColor.withValues(alpha: 0.7)),
-                ),
-                const SizedBox(height: 2),
-                Text(phase.description,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('$daysLeft gg',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: phase.darkColor),
-              ),
-              Text('al prossimo', style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-              Text('${next.day} ${mesi[next.month - 1]}',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: phase.darkColor),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CyclePhaseBar extends StatelessWidget {
-  final CycleState cycle;
-  const _CyclePhaseBar({required this.cycle});
-
-  @override
-  Widget build(BuildContext context) {
-    final phases = CyclePhase.values;
-    final currentDay = cycle.currentCycleDay!;
-    final total = cycle.cycleLength;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Phase bar
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Row(
-            children: phases.map((phase) {
-              final days = phase.daysCount(cycle.cycleLength, cycle.periodLength);
-              return Expanded(
-                flex: days,
-                child: Container(height: 14, color: phase.color),
-              );
-            }).toList(),
-          ),
+        // Ultima mestruazione
+        const Text('Ultima mestruazione',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
         ),
-        const SizedBox(height: 4),
-        // Current day indicator
-        LayoutBuilder(builder: (context, constraints) {
-          final x = ((currentDay - 1) / total) * constraints.maxWidth;
-          return Stack(
-            children: [
-              const SizedBox(height: 6, width: double.infinity),
-              Positioned(
-                left: x.clamp(0, constraints.maxWidth - 2),
-                child: Container(
-                  width: 2, height: 6,
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-        const SizedBox(height: 4),
-        // Labels
-        Row(
-          children: phases.map((phase) {
-            final days = phase.daysCount(cycle.cycleLength, cycle.periodLength);
-            return Expanded(
-              flex: days,
-              child: Text(phase.label,
-                style: TextStyle(fontSize: 9, color: phase.darkColor, fontWeight: FontWeight.w600),
-                overflow: TextOverflow.ellipsis,
-              ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: cycle.lastPeriodDate ?? DateTime.now(),
+              firstDate: DateTime.now().subtract(const Duration(days: 180)),
+              lastDate: DateTime.now(),
+              helpText: "Primo giorno dell'ultima mestruazione",
             );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}
-
-class _CycleMonthCalendar extends StatelessWidget {
-  final CycleState cycle;
-  const _CycleMonthCalendar({required this.cycle});
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final firstDay = DateTime(now.year, now.month, 1);
-    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
-    final startWeekday = firstDay.weekday; // 1=Mon, 7=Sun
-    const headers = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            _monthLabel(now),
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: headers.map((h) => Expanded(
-              child: Center(
-                child: Text(h, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-              ),
-            )).toList(),
-          ),
-          const SizedBox(height: 6),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: 1,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
+            if (date != null) {
+              ref.read(cycleProvider.notifier).updateLastPeriodDate(date);
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider),
             ),
-            itemCount: daysInMonth + (startWeekday - 1),
-            itemBuilder: (context, i) {
-              if (i < startWeekday - 1) return const SizedBox.shrink();
-              final day = i - (startWeekday - 1) + 1;
-              final date = DateTime(now.year, now.month, day);
-              final phase = cycle.phaseForDate(date);
-              final isToday = day == now.day;
-              return Container(
-                decoration: BoxDecoration(
-                  color: phase?.color.withValues(alpha: 0.6) ?? Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: isToday
-                      ? Border.all(color: AppColors.textPrimary, width: 1.5)
-                      : null,
-                ),
-                child: Center(
-                  child: Text('$day',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isToday ? FontWeight.w800 : FontWeight.normal,
-                      color: phase != null ? phase.darkColor : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          // Legend
-          Wrap(
-            spacing: 10,
-            runSpacing: 4,
-            children: CyclePhase.values.map((p) => Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 10, height: 10,
-                  decoration: BoxDecoration(color: p.color, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 4),
-                Text(p.label, style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-              ],
-            )).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _monthLabel(DateTime d) {
-    const mesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-    return '${mesi[d.month - 1]} ${d.year}';
-  }
-}
-
-class _CycleActionButtons extends StatelessWidget {
-  final CycleState cycle;
-  final VoidCallback onStart;
-  final VoidCallback onEnd;
-  const _CycleActionButtons({required this.cycle, required this.onStart, required this.onEnd});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: onStart,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B2040),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Center(
-                child: Text('Inizia ciclo',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (cycle.isInActivePeriod) ...[
-          const SizedBox(width: 10),
-          Expanded(
-            child: GestureDetector(
-              onTap: onEnd,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF8B2040)),
-                ),
-                child: const Center(
-                  child: Text('Fine mestruazioni',
-                    style: TextStyle(color: Color(0xFF8B2040), fontWeight: FontWeight.w700, fontSize: 13),
+                Text(
+                  cycle.lastPeriodDate != null
+                      ? '${cycle.lastPeriodDate!.day} ${_mesi[cycle.lastPeriodDate!.month - 1]} ${cycle.lastPeriodDate!.year}'
+                      : 'Seleziona una data',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: cycle.lastPeriodDate != null
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                   ),
                 ),
-              ),
+                const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.textSecondary),
+              ],
             ),
           ),
-        ],
-      ],
-    );
-  }
-}
-
-class _CycleSettingsRow extends ConsumerWidget {
-  final CycleState cycle;
-  const _CycleSettingsRow({required this.cycle});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        Expanded(
-          child: _CycleStepper(
-            label: 'Durata ciclo',
-            value: cycle.cycleLength,
-            unit: 'giorni',
-            min: 21,
-            max: 35,
-            onChanged: (v) => ref.read(cycleProvider.notifier).updateCycleLength(v),
-          ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _CycleStepper(
-            label: 'Durata mestruazioni',
-            value: cycle.periodLength,
-            unit: 'giorni',
-            min: 2,
-            max: 9,
-            onChanged: (v) => ref.read(cycleProvider.notifier).updatePeriodLength(v),
-          ),
+        const SizedBox(height: 16),
+
+        // Durata ciclo + durata mestruazioni
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Durata ciclo',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 6),
+                  _CycleStepper(
+                    value: cycle.cycleLength,
+                    unit: 'giorni',
+                    min: 21,
+                    max: 35,
+                    onChanged: (v) => ref.read(cycleProvider.notifier).updateCycleLength(v),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Durata mestruazioni',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 6),
+                  _CycleStepper(
+                    value: cycle.periodLength,
+                    unit: 'giorni',
+                    min: 2,
+                    max: 9,
+                    onChanged: (v) => ref.read(cycleProvider.notifier).updatePeriodLength(v),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -946,14 +642,12 @@ class _CycleSettingsRow extends ConsumerWidget {
 }
 
 class _CycleStepper extends StatelessWidget {
-  final String label;
   final int value;
   final String unit;
   final int min;
   final int max;
   final ValueChanged<int> onChanged;
   const _CycleStepper({
-    required this.label,
     required this.value,
     required this.unit,
     required this.min,
@@ -970,35 +664,29 @@ class _CycleStepper extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.divider),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: value > min ? () => onChanged(value - 1) : null,
-                child: Icon(Icons.remove_rounded,
-                  size: 18,
-                  color: value > min ? AppColors.textPrimary : AppColors.divider,
-                ),
-              ),
-              Text('$value $unit',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-              ),
-              GestureDetector(
-                onTap: value < max ? () => onChanged(value + 1) : null,
-                child: Icon(Icons.add_rounded,
-                  size: 18,
-                  color: value < max ? AppColors.textPrimary : AppColors.divider,
-                ),
-              ),
-            ],
+          GestureDetector(
+            onTap: value > min ? () => onChanged(value - 1) : null,
+            child: Icon(Icons.remove_rounded,
+              size: 18,
+              color: value > min ? AppColors.textPrimary : AppColors.divider,
+            ),
+          ),
+          Text('$value $unit',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+          ),
+          GestureDetector(
+            onTap: value < max ? () => onChanged(value + 1) : null,
+            child: Icon(Icons.add_rounded,
+              size: 18,
+              color: value < max ? AppColors.textPrimary : AppColors.divider,
+            ),
           ),
         ],
       ),
     );
   }
 }
+

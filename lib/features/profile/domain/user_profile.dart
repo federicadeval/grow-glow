@@ -56,6 +56,7 @@ class UserProfile {
   final DietStyle dietStyle;
   final List<String> intolerances;
   final String foodsToAvoid;
+  final int? customKcalGoal;
 
   const UserProfile({
     this.name,
@@ -67,6 +68,7 @@ class UserProfile {
     this.dietStyle = DietStyle.onnivora,
     this.intolerances = const [],
     this.foodsToAvoid = '',
+    this.customKcalGoal,
   });
 
   // Mifflin-St Jeor
@@ -88,6 +90,8 @@ class UserProfile {
     }
   }
 
+  int get effectiveKcal => customKcalGoal ?? suggestedKcal;
+
   int get proteinG {
     switch (goal) {
       case FitnessGoal.weightLoss: return (weightKg * 2.0).round();
@@ -96,8 +100,8 @@ class UserProfile {
     }
   }
 
-  int get carbsG => ((suggestedKcal * 0.45) / 4).round();
-  int get fatG => ((suggestedKcal * 0.25) / 9).round();
+  int get carbsG => ((effectiveKcal * 0.45) / 4).round();
+  int get fatG => ((effectiveKcal * 0.25) / 9).round();
 
   UserProfile copyWith({
     String? name,
@@ -109,6 +113,7 @@ class UserProfile {
     DietStyle? dietStyle,
     List<String>? intolerances,
     String? foodsToAvoid,
+    Object? customKcalGoal = _unset,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -120,8 +125,11 @@ class UserProfile {
       dietStyle: dietStyle ?? this.dietStyle,
       intolerances: intolerances ?? this.intolerances,
       foodsToAvoid: foodsToAvoid ?? this.foodsToAvoid,
+      customKcalGoal: customKcalGoal == _unset ? this.customKcalGoal : customKcalGoal as int?,
     );
   }
+
+  static const Object _unset = Object();
 
   Map<String, dynamic> toJson() => {
     'name': name,
@@ -133,6 +141,7 @@ class UserProfile {
     'dietStyle': dietStyle.index,
     'intolerances': intolerances,
     'foodsToAvoid': foodsToAvoid,
+    'customKcalGoal': customKcalGoal,
   };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
@@ -145,6 +154,7 @@ class UserProfile {
     dietStyle: DietStyle.values[json['dietStyle'] as int? ?? 0],
     intolerances: (json['intolerances'] as List<dynamic>?)?.cast<String>() ?? [],
     foodsToAvoid: json['foodsToAvoid'] as String? ?? '',
+    customKcalGoal: json['customKcalGoal'] as int?,
   );
 
   static UserProfile get defaultProfile => const UserProfile(

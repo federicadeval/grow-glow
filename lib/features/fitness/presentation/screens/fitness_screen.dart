@@ -8,6 +8,7 @@ import '../../../../core/widgets/section_banner.dart';
 import '../../../profile/data/profile_provider.dart';
 import '../../data/calorie_provider.dart';
 import '../../domain/models/workout_model.dart';
+import 'workout_history_screen.dart';
 import 'workout_screen.dart';
 import 'workout_session_screen.dart';
 import 'c25k_session_screen.dart';
@@ -90,7 +91,7 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                         children: [
                           _StatPill(Icons.fitness_center_rounded, 'Sessioni', '$_weeklySessions'),
                           _StatPill(Icons.local_fire_department_rounded, 'Kcal bruciate', '$_weeklyKcal'),
-                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.suggestedKcal ?? 0}'),
+                          _StatPill(Icons.flag_rounded, 'Obiettivo', '${profile?.effectiveKcal ?? 2000}'),
                           _StatPill(Icons.check_circle_rounded, 'Oggi', '${daily.burnedKcal}'),
                         ],
                       ),
@@ -172,6 +173,24 @@ class _FitnessScreenState extends ConsumerState<FitnessScreen> {
                         ),
                       ).then((_) => _loadWeekData()),
                     )),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const WorkoutHistoryScreen()),
+                        ),
+                        icon: const Icon(Icons.history_rounded),
+                        label: const Text('Storico allenamenti'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.peachDark,
+                          side: const BorderSide(color: AppColors.peachDark),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
 
                     Text('Corsa',
@@ -261,7 +280,7 @@ class _KcalBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final target = profile?.suggestedKcal ?? 0;
+    final target = profile?.effectiveKcal ?? 2000;
     final net = target + daily.burnedKcal - daily.consumedKcal;
     final progress = target > 0 ? (daily.consumedKcal / target).clamp(0.0, 1.0) : 0.0;
     final hasProfile = profile != null;

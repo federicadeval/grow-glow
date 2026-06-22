@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dieta — proposta redesign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Token esatti dall'app ──────────────────────── */
+    :root {
+      --bg:           #FDFAF6;
+      --surface:      #FFFFFF;
+      --text:         #1D2B2C;
+      --text-sec:     #8A9890;
+      --divider:      #EDE4D8;
+
+      --diet:         #B8C4D4;
+      --diet-dark:    #1A2848;
+
+      --mint:         #9DB0A4;
+      --mint-dark:    #1A3028;
+      --peach:        #E2CAC0;
+      --peach-dark:   #4A2018;
+      --fitness:      #E2CAC0;
+      --fitness-dark: #4A2018;
+      --lavender:     #9DB0A4;
+      --lavender-dark:#1A3028;
+
+      --ff: 'DM Sans', system-ui, sans-serif;
+      --ff-mono: 'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #D0CDC8;
+      font-family: var(--ff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 52px;
+      padding: 44px 20px 80px;
+    }
+
+    .screen-label {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ─── Phone shell ──────────────────────────────── */
+    .phone {
+      width: 390px;
+      background: var(--bg);
+      border-radius: 48px;
+      overflow: hidden;
+      box-shadow: 0 36px 90px rgba(0,0,0,0.22), 0 3px 12px rgba(0,0,0,0.10);
+    }
+
+    /* ─── Status bar ───────────────────────────────── */
+    .sbar {
+      background: var(--diet);
+      padding: 13px 28px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sbar-time {
+      font-family: var(--ff-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--diet-dark);
+      opacity: 0.8;
+    }
+    .sbar-icons { display: flex; align-items: center; gap: 5px; }
+
+    /* ─── Top strip (diet color, scrolls with content) ─ */
+    .top-strip { background: var(--diet); }
+
+    /* SectionBanner */
+    .section-banner {
+      margin: 0 20px 12px;
+      padding: 18px 20px;
+      background: var(--diet);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sb-icon {
+      font-size: 30px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .sb-text { display: flex; flex-direction: column; gap: 2px; }
+    .sb-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--diet-dark);
+      line-height: 1.1;
+    }
+    .sb-sub {
+      font-size: 13px;
+      color: var(--diet-dark);
+      opacity: 0.65;
+    }
+
+    /* ─── Kcal summary (inside strip, replaces 4 pillole) ─ */
+    .kcal-strip {
+      margin: 0 20px 12px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 18px;
+      padding: 14px 18px;
+    }
+    /* Top row: big remaining + target */
+    .kcal-strip-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .kcal-remaining-block { display: flex; align-items: baseline; gap: 5px; }
+    .kcal-remaining-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--diet-dark);
+      line-height: 1;
+      font-family: var(--ff-mono);
+    }
+    .kcal-remaining-lbl {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--diet-dark);
+      opacity: 0.7;
+    }
+    .kcal-target-note {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      color: var(--diet-dark);
+      opacity: 0.5;
+    }
+    /* Gauge bar */
+    .gauge-track {
+      height: 6px;
+      background: rgba(26,40,72,0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--diet-dark);
+      opacity: 0.6;
+      width: 0;
+      transition: width 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .gauge-fill.loaded { width: 44.9%; }
+    /* Three stats below gauge */
+    .kcal-strip-stats {
+      display: flex;
+      align-items: center;
+    }
+    .kcal-stat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+    .kcal-stat-val {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--diet-dark);
+    }
+    .kcal-stat-lbl {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--diet-dark);
+      opacity: 0.6;
+    }
+    .kcal-stat-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(26,40,72,0.15);
+    }
+
+    /* ─── Day selector (stessa struttura di FitnessScreen) ─ */
+    .day-row {
+      padding: 0 16px 14px;
+      display: flex;
+      gap: 4px;
+    }
+    .day-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 2px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .day-item.active { background: var(--diet-dark); }
+    .day-ltr {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--diet-dark);
+    }
+    .day-item.active .day-ltr { color: #fff; }
+    .day-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+    }
+    .day-item.logged    .day-dot { background: var(--diet-dark); }
+    .day-item.active .day-dot    { background: #fff; }
+
+    /* ─── Content area ─────────────────────────────── */
+    .content {
+      background: var(--bg);
+      padding: 16px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Day label + Genera row */
+    .day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .day-header-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .genera-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--diet-dark);
+      border: none;
+      border-radius: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: var(--ff);
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .genera-btn-icon { font-size: 13px; }
+
+    /* ─── Meal card (filled) ───────────────────────── */
+    .meal-card {
+      background: var(--surface);
+      border-radius: 20px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .meal-card-inner { padding: 16px; }
+
+    .meal-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .meal-card-icon { font-size: 26px; line-height: 1; }
+    .meal-card-title-block { flex: 1; min-width: 0; }
+    .meal-card-type {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meal-card-name {
+      font-size: 13px;
+      color: var(--text-sec);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meal-card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .icon-btn {
+      font-size: 16px;
+      color: var(--text-sec);
+      cursor: pointer;
+      line-height: 1;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    /* Macro bar: 3 segments P/C/G */
+    .macro-bar {
+      display: flex;
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+      gap: 1px;
+      margin-bottom: 8px;
+    }
+    .mb-p { background: var(--peach-dark); border-radius: 2px; }
+    .mb-c { background: var(--mint-dark);  border-radius: 2px; }
+    .mb-f { background: var(--lavender-dark); border-radius: 2px; opacity: 0.7; }
+
+    /* Macro pills row */
+    .macro-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .macro-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .mp-kcal { background: var(--fitness);    color: var(--fitness-dark); }
+    .mp-p    { background: var(--peach);      color: var(--peach-dark); }
+    .mp-c    { background: var(--mint);       color: var(--mint-dark); }
+    .mp-f    { background: var(--lavender);   color: var(--lavender-dark); }
+
+    /* ─── Meal card (empty) ────────────────────────── */
+    .meal-empty {
+      background: rgba(184,196,212,0.18);
+      border-radius: 20px;
+      border: 1px solid rgba(184,196,212,0.4);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .meal-empty-icon { font-size: 26px; line-height: 1; }
+    .meal-empty-content { flex: 1; }
+    .meal-empty-type {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .meal-empty-cta {
+      font-size: 13px;
+      color: var(--mint-dark);
+      opacity: 0.7;
+    }
+    .meal-empty-plus {
+      font-size: 22px;
+      color: var(--mint-dark);
+      opacity: 0.4;
+    }
+
+    /* ══════════════════════════════════════════════ */
+    /* BOTTOM SHEET                                   */
+    /* ══════════════════════════════════════════════ */
+    .sheet-wrap {
+      position: relative;
+    }
+    .sheet-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 48px;
+      background: rgba(29,43,44,0.25);
+      z-index: 1;
+      /* scrim covers only the peeking header area */
+      height: 130px;
+      bottom: auto;
+    }
+    .sheet-container {
+      position: relative;
+      z-index: 2;
+      margin-top: 130px;
+      background: var(--surface);
+      border-radius: 24px 24px 48px 48px;
+      overflow: hidden;
+    }
+
+    .sheet-grip-row {
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 0;
+    }
+    .sheet-grip {
+      width: 36px; height: 4px;
+      background: var(--divider);
+      border-radius: 2px;
+    }
+    .sheet-header {
+      padding: 14px 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sheet-header-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .sheet-header-icon { font-size: 22px; }
+    .sheet-header-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sheet-live {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--mint-dark);
+      background: rgba(157,176,164,0.2);
+      padding: 5px 10px;
+      border-radius: 9px;
+    }
+
+    .sheet-body {
+      padding: 18px 22px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+    }
+    .field-input {
+      background: var(--bg);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-family: var(--ff);
+      font-size: 14px;
+      color: var(--text);
+      width: 100%;
+      outline: none;
+    }
+    .field-input::placeholder { color: var(--text-sec); opacity: 0.45; }
+    .field-input.focused { border-color: var(--mint); }
+
+    .search-drop {
+      background: var(--bg);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .sres {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--divider);
+      cursor: pointer;
+    }
+    .sres:last-child { border-bottom: none; }
+    .sres-text { flex: 1; }
+    .sres-name { font-size: 13px; color: var(--text); font-weight: 500; }
+    .sres-meta {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--text-sec);
+      margin-top: 1px;
+    }
+    .sres-add {
+      font-size: 20px;
+      color: var(--mint-dark);
+      opacity: 0.6;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(157,176,164,0.15);
+      border: 1px solid rgba(157,176,164,0.3);
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--mint-dark);
+    }
+    .chip-x { opacity: 0.4; cursor: pointer; }
+
+    .eout-toggle {
+      background: var(--bg);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .eout-icon { font-size: 18px; }
+    .eout-label { flex: 1; font-size: 13px; color: var(--text); }
+    .toggle-pill {
+      width: 32px; height: 18px;
+      background: var(--divider);
+      border-radius: 9px;
+    }
+
+    .save-btn {
+      margin: 18px 22px 36px;
+      width: calc(100% - 44px);
+      background: var(--diet-dark);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 15px 20px;
+      font-family: var(--ff);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .save-kcal {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      opacity: 0.6;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gauge-fill { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════
+       SCHERMATA 1 — Vista principale
+  ════════════════════════════════════════════════════ -->
+  <p class="screen-label">Vista principale · oggi</p>
+  <div class="phone">
+
+    <!-- Status bar -->
+    <div class="sbar">
+      <span class="sbar-time">09:41</span>
+      <div class="sbar-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7.5" width="3" height="4.5" rx="1" fill="#1A2848" opacity=".7"/><rect x="4.5" y="5" width="3" height="7" rx="1" fill="#1A2848" opacity=".7"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#1A2848" opacity=".7"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#1A2848" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" fill="#1A2848" opacity=".7"/><path d="M3.5 6.5a6.4 6.4 0 019 0" stroke="#1A2848" stroke-width="1.5" stroke-linecap="round" opacity=".55"/><path d="M1 4a9.8 9.8 0 0114 0" stroke="#1A2848" stroke-width="1.5" stroke-linecap="round" opacity=".3"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x=".5" y=".5" width="18" height="11" rx="3" stroke="#1A2848" stroke-opacity=".4"/><rect x="19" y="3.5" width="2.5" height="5" rx="1.5" fill="#1A2848" opacity=".4"/><rect x="2" y="2" width="13" height="8" rx="2" fill="#1A2848" opacity=".6"/></svg>
+      </div>
+    </div>
+
+    <!-- Top strip -->
+    <div class="top-strip">
+
+      <!-- SectionBanner (identico alle altre sezioni) -->
+      <div class="section-banner" style="margin-top:0; padding-top:16px;">
+        <span class="sb-icon">🥗</span>
+        <div class="sb-text">
+          <span class="sb-title">Dieta</span>
+          <span class="sb-sub">Nutrizione e piani alimentari personalizzati</span>
+        </div>
+      </div>
+
+      <!-- Kcal summary — sostituisce le 4 pillole cramped -->
+      <div class="kcal-strip">
+        <div class="kcal-strip-top">
+          <div class="kcal-remaining-block">
+            <span class="kcal-remaining-num">1.200</span>
+            <span class="kcal-remaining-lbl">kcal rimaste</span>
+          </div>
+          <span class="kcal-target-note">ob. 1.850</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="gauge"></div>
+        </div>
+        <div class="kcal-strip-stats">
+          <div class="kcal-stat">
+            <span class="kcal-stat-val">830</span>
+            <span class="kcal-stat-lbl">consumate</span>
+          </div>
+          <div class="kcal-stat-divider"></div>
+          <div class="kcal-stat">
+            <span class="kcal-stat-val">+180</span>
+            <span class="kcal-stat-lbl">bruciate</span>
+          </div>
+          <div class="kcal-stat-divider"></div>
+          <div class="kcal-stat">
+            <span class="kcal-stat-val">1.850</span>
+            <span class="kcal-stat-lbl">obiettivo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day selector (stesso stile FitnessScreen) -->
+      <div class="day-row">
+        <div class="day-item logged">
+          <span class="day-ltr">L</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item logged">
+          <span class="day-ltr">M</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item logged">
+          <span class="day-ltr">M</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item">
+          <span class="day-ltr">G</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item logged">
+          <span class="day-ltr">V</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item active logged">
+          <span class="day-ltr">S</span><div class="day-dot"></div>
+        </div>
+        <div class="day-item">
+          <span class="day-ltr">D</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div><!-- /top-strip -->
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Day name + Genera -->
+      <div class="day-header">
+        <span class="day-header-name">Sabato</span>
+        <button class="genera-btn">
+          <span class="genera-btn-icon">✦</span>
+          Genera
+        </button>
+      </div>
+
+      <!-- Colazione ─ filled -->
+      <div class="meal-card">
+        <div class="meal-card-inner">
+          <div class="meal-card-head">
+            <span class="meal-card-icon">☀️</span>
+            <div class="meal-card-title-block">
+              <div class="meal-card-type">Colazione</div>
+              <div class="meal-card-name">Yogurt greco con granola e mirtilli</div>
+            </div>
+            <div class="meal-card-actions">
+              <button class="icon-btn">✏️</button>
+              <button class="icon-btn">✕</button>
+            </div>
+          </div>
+          <!-- P 18g×4=72 / 320=22.5% · C 36g×4=144/320=45% · G 9g×9=81/320=25.3% -->
+          <div class="macro-bar">
+            <div class="mb-p" style="width:22.5%"></div>
+            <div class="mb-c" style="width:45%"></div>
+            <div class="mb-f" style="width:25.3%"></div>
+          </div>
+          <div class="macro-pills">
+            <span class="macro-pill mp-kcal">320 kcal</span>
+            <span class="macro-pill mp-p">P 18g</span>
+            <span class="macro-pill mp-c">C 36g</span>
+            <span class="macro-pill mp-f">G 9g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spuntino ─ empty -->
+      <div class="meal-empty">
+        <span class="meal-empty-icon">🍎</span>
+        <div class="meal-empty-content">
+          <div class="meal-empty-type">Spuntino</div>
+          <div class="meal-empty-cta">Tocca per aggiungere</div>
+        </div>
+        <span class="meal-empty-plus">＋</span>
+      </div>
+
+      <!-- Pranzo ─ filled -->
+      <div class="meal-card">
+        <div class="meal-card-inner">
+          <div class="meal-card-head">
+            <span class="meal-card-icon">🌿</span>
+            <div class="meal-card-title-block">
+              <div class="meal-card-type">Pranzo</div>
+              <div class="meal-card-name">Pasta integrale al pomodoro e basilico</div>
+            </div>
+            <div class="meal-card-actions">
+              <button class="icon-btn">✏️</button>
+              <button class="icon-btn">✕</button>
+            </div>
+          </div>
+          <!-- P 16g×4=64/510=12.5% · C 78g×4=312/510=61.2% · G 10g×9=90/510=17.6% -->
+          <div class="macro-bar">
+            <div class="mb-p" style="width:12.5%"></div>
+            <div class="mb-c" style="width:61.2%"></div>
+            <div class="mb-f" style="width:17.6%"></div>
+          </div>
+          <div class="macro-pills">
+            <span class="macro-pill mp-kcal">510 kcal</span>
+            <span class="macro-pill mp-p">P 16g</span>
+            <span class="macro-pill mp-c">C 78g</span>
+            <span class="macro-pill mp-f">G 10g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cena ─ empty -->
+      <div class="meal-empty">
+        <span class="meal-empty-icon">🌙</span>
+        <div class="meal-empty-content">
+          <div class="meal-empty-type">Cena</div>
+          <div class="meal-empty-cta">Tocca per aggiungere</div>
+        </div>
+        <span class="meal-empty-plus">＋</span>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /phone 1 -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       SCHERMATA 2 — Bottom sheet modifica pasto
+  ════════════════════════════════════════════════════ -->
+  <p class="screen-label">Bottom sheet · modifica cena</p>
+  <div class="phone sheet-wrap">
+
+    <!-- Sfondo parzialmente visibile (header) -->
+    <div class="sbar">
+      <span class="sbar-time">09:41</span>
+      <div class="sbar-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7.5" width="3" height="4.5" rx="1" fill="#1A2848" opacity=".7"/><rect x="4.5" y="5" width="3" height="7" rx="1" fill="#1A2848" opacity=".7"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#1A2848" opacity=".7"/></svg>
+      </div>
+    </div>
+    <div class="top-strip" style="padding-bottom:10px;">
+      <div class="section-banner" style="margin-top:0; padding-top:16px;">
+        <span class="sb-icon">🥗</span>
+        <div class="sb-text">
+          <span class="sb-title">Dieta</span>
+          <span class="sb-sub">Nutrizione e piani alimentari personalizzati</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- scrim -->
+    <div class="sheet-overlay"></div>
+
+    <!-- Sheet -->
+    <div class="sheet-container">
+      <div class="sheet-grip-row"><div class="sheet-grip"></div></div>
+
+      <div class="sheet-header">
+        <div class="sheet-header-left">
+          <span class="sheet-header-icon">🌙</span>
+          <span class="sheet-header-title">Cena</span>
+        </div>
+        <span class="sheet-live">346 kcal</span>
+      </div>
+
+      <div class="sheet-body">
+
+        <div class="field">
+          <span class="field-lbl">Nome del pasto</span>
+          <input class="field-input" value="Salmone al forno con verdure" />
+        </div>
+
+        <div class="field">
+          <span class="field-lbl">Cerca ingrediente</span>
+          <input class="field-input focused" value="salmone" placeholder="Es. riso, pollo, spinaci…" />
+          <div class="search-drop">
+            <div class="sres">
+              <div class="sres-text">
+                <div class="sres-name">Salmone atlantico</div>
+                <div class="sres-meta">208 kcal/100g · P 20g&nbsp; C 0g&nbsp; G 13g</div>
+              </div>
+              <span class="sres-add">＋</span>
+            </div>
+            <div class="sres">
+              <div class="sres-text">
+                <div class="sres-name">Salmone affumicato</div>
+                <div class="sres-meta">172 kcal/100g · P 18g&nbsp; C 0g&nbsp; G 11g</div>
+              </div>
+              <span class="sres-add">＋</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-lbl">Ingredienti</span>
+          <div class="chips">
+            <div class="chip">Salmone 150g · 312 kcal <span class="chip-x">×</span></div>
+            <div class="chip">Zucchine 200g · 34 kcal <span class="chip-x">×</span></div>
+          </div>
+        </div>
+
+        <div class="eout-toggle">
+          <span class="eout-icon">🍽</span>
+          <span class="eout-label">Mangio fuori</span>
+          <div class="toggle-pill"></div>
+        </div>
+
+      </div>
+
+      <button class="save-btn">
+        Salva cena
+        <span class="save-kcal">346 kcal</span>
+      </button>
+    </div>
+
+  </div><!-- /phone 2 -->
+
+  <script>
+    window.addEventListener('load', () => {
+      requestAnimationFrame(() => setTimeout(() => {
+        const g = document.getElementById('gauge');
+        if (g) g.classList.add('loaded');
+      }, 300));
+    });
+  </script>
+</body>
+</html>

@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../cycle/data/cycle_provider.dart';
+import '../../cycle/domain/cycle_entry.dart';
 import '../../fitness/data/calorie_provider.dart';
 import '../../profile/data/profile_provider.dart';
-import '../../supplements/data/supplement_provider.dart';
 import '../data/water_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -17,12 +18,11 @@ class DashboardScreen extends ConsumerWidget {
     final calories = ref.watch(calorieProvider);
     final profile = ref.watch(profileProvider);
     final waterMl = ref.watch(waterProvider);
-    final suppState = ref.watch(supplementProvider);
     final now = DateTime.now();
     final hour = now.hour;
     final greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
 
-    final targetKcal = profile?.suggestedKcal.round() ?? 2000;
+    final targetKcal = profile?.effectiveKcal ?? 2000;
     final remaining = (targetKcal - calories.consumedKcal + calories.burnedKcal).clamp(0, 99999);
     final kcalProgress = (calories.consumedKcal / targetKcal).clamp(0.0, 1.0);
     final waterL = waterMl / 1000.0;
@@ -105,19 +105,16 @@ class DashboardScreen extends ConsumerWidget {
                     _SupplementSectionCard(
                       onTap: () => context.go('/supplements'),
                     ),
-                    const SizedBox(height: 16),
-                    if (suppState.activeIds.isNotEmpty)
-                      _SupplementDailySummary(
-                        activeCount: suppState.activeIds.length,
-                        takenCount: suppState.takenTodayIds.length,
-                        onTap: () => context.go('/supplements'),
-                      ),
                     const SizedBox(height: 24),
                     const Text('Questa settimana',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 14),
                     _WeeklySummary(),
+                    const SizedBox(height: 24),
+                    _CycleSectionCard(
+                      onTap: () => context.go('/cycle'),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -545,89 +542,96 @@ class _SupplementSectionCard extends StatelessWidget {
   }
 }
 
-// ─── Supplement daily summary ─────────────────────────────────
-class _SupplementDailySummary extends StatelessWidget {
-  final int activeCount;
-  final int takenCount;
+// ─── Cycle section card (compact, full-width) ────────────────
+class _CycleSectionCard extends ConsumerWidget {
   final VoidCallback onTap;
-
-  const _SupplementDailySummary({
-    required this.activeCount,
-    required this.takenCount,
-    required this.onTap,
-  });
+  const _CycleSectionCard({required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    final allDone = takenCount == activeCount;
-    final progress = activeCount > 0 ? takenCount / activeCount : 0.0;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cycle = ref.watch(cycleProvider);
+
+    if (cycle.lastPeriodDate == null) {
+      return GestureDetector(
+        onTap: () => context.push('/profile'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2C4CE).withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFF2C4CE)),
+          ),
+          child: const Row(
+            children: [
+              Text('🌸', style: TextStyle(fontSize: 22)),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ciclo',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF8B2040)),
+                    ),
+                    Text('Configura nel Profilo',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final phase = cycle.currentPhase!;
+    final daysLeft = cycle.daysToNextPeriod!;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: allDone
-              ? AppColors.supplement
-              : AppColors.surface,
+          color: phase.color.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: allDone ? AppColors.supplementDark.withValues(alpha: 0.3) : AppColors.divider,
-          ),
+          border: Border.all(color: phase.color),
         ),
         child: Row(
           children: [
             Container(
               width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.supplement,
-                borderRadius: BorderRadius.circular(11),
-              ),
-              child: Icon(Icons.medication_rounded,
-                  color: AppColors.supplementDark, size: 18),
+              decoration: BoxDecoration(color: phase.color, shape: BoxShape.circle),
+              child: Center(child: Text(phase.emoji, style: const TextStyle(fontSize: 18))),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Integratori oggi',
-                        style: TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      Text('$takenCount di $activeCount',
-                        style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700,
-                          color: allDone
-                              ? AppColors.supplementDark
-                              : AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                  Text('Ciclo · ${phase.label}',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: phase.darkColor),
                   ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 4,
-                      backgroundColor: AppColors.divider,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        allDone ? AppColors.supplementDark : AppColors.supplement,
-                      ),
-                    ),
+                  Text(phase.description,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right_rounded,
-                color: AppColors.textSecondary, size: 18),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('$daysLeft gg',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: phase.darkColor),
+                ),
+                Text('al prossimo',
+                  style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.chevron_right_rounded, color: phase.darkColor, size: 18),
           ],
         ),
       ),

@@ -77,4 +77,18 @@ final List<WorkoutPlan> builtinWorkouts = [
       Exercise(name: 'Curl con bilanciere', sets: 3, reps: 15, weight: '6-8 kg', restSeconds: 60),
     ],
   ),
+  WorkoutPlan(
+    id: 'full_body_home',
+    name: 'Full Body a Casa',
+    icon: Icons.accessibility_new_rounded,
+    duration: '30 min',
+    estimatedKcal: 180,
+    exercises: [
+      Exercise(name: 'Squat', sets: 3, reps: 15, weight: '—', restSeconds: 60),
+      Exercise(name: 'Superman', sets: 3, reps: 12, weight: '—', restSeconds: 45),
+      Exercise(name: 'Affondi alternati', sets: 3, reps: 10, weight: '—', restSeconds: 60),
+      Exercise(name: 'Crunch', sets: 3, reps: 20, weight: '—', restSeconds: 45),
+      Exercise(name: 'Glute Bridge', sets: 3, reps: 15, weight: '—', restSeconds: 45),
+    ],
+  ),
 ];

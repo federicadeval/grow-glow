@@ -34,7 +34,7 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     final dayMeals = planState.plan.day(_selectedDay);
     final profile = ref.watch(profileProvider);
     final calories = ref.watch(calorieProvider);
-    final targetKcal = profile?.suggestedKcal ?? 2000;
+    final targetKcal = profile?.effectiveKcal ?? 2000;
 
     return Scaffold(
       backgroundColor: AppColors.background,
