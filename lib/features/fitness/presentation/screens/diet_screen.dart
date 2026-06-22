@@ -11,6 +11,7 @@ import '../../data/meal_plan_provider.dart';
 import '../../domain/models/meal_plan_model.dart';
 import '../../domain/food_database.dart';
 import '../../data/open_food_facts_service.dart';
+import '../../data/custom_food_provider.dart';
 
 class DietScreen extends ConsumerStatefulWidget {
   const DietScreen({super.key});
@@ -555,7 +556,14 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
               onPressed: () {
                 final g = double.tryParse(ctrl.text) ?? 100;
                 setState(() {
-                  _ingredients.add(Ingredient(name: food.name, grams: g, kcalPer100g: food.kcalPer100g));
+                  _ingredients.add(Ingredient(
+                    name: food.name,
+                    grams: g,
+                    kcalPer100g: food.kcalPer100g,
+                    proteinPer100g: food.proteinPer100g,
+                    carbsPer100g: food.carbsPer100g,
+                    fatPer100g: food.fatPer100g,
+                  ));
                   _searchCtrl.clear();
                   _searchResults = [];
                 });
@@ -699,7 +707,18 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
                                 })
                               : null,
                         ),
-                        onChanged: (q) => setState(() => _searchResults = searchFood(q)),
+                        onChanged: (q) {
+                          final dbResults = searchFood(q);
+                          final customResults = ref.read(customFoodProvider.notifier).search(q).map((c) => FoodItem(
+                            name: c.displayName,
+                            kcalPer100g: c.kcalPer100g,
+                            proteinPer100g: c.proteinPer100g,
+                            carbsPer100g: c.carbsPer100g,
+                            fatPer100g: c.fatPer100g,
+                            category: 'Personalizzato',
+                          )).toList();
+                          setState(() => _searchResults = [...customResults, ...dbResults]);
+                        },
                       ),
                     ),
                     if (_searchResults.isNotEmpty)
@@ -895,42 +914,67 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
     if (code.isEmpty) return;
     setState(() { _barcodeLoading = true; _barcodeError = null; });
 
+    // 1. Cerca prima nel DB personalizzato per barcode
+    final custom = ref.read(customFoodProvider.notifier).findByBarcode(code);
+    if (custom != null && mounted) {
+      setState(() { _barcodeLoading = false; });
+      _showProductGramsDialog(
+        name: custom.name, brand: custom.brand,
+        kcal: custom.kcalPer100g, protein: custom.proteinPer100g,
+        carbs: custom.carbsPer100g, fat: custom.fatPer100g,
+      );
+      return;
+    }
+
+    // 2. Open Food Facts
     final result = await OpenFoodFactsService.lookup(code);
     if (!mounted) return;
 
     if (result == null) {
-      setState(() { _barcodeLoading = false; _barcodeError = 'Prodotto non trovato. Prova con il codice completo.'; });
+      setState(() { _barcodeLoading = false; _barcodeError = null; });
+      _showManualEntryDialog(code);
       return;
     }
 
-    // prefill name if empty
     if (_nameCtrl.text.isEmpty) _nameCtrl.text = result.displayName;
-
     setState(() { _barcodeLoading = false; _barcodeError = null; });
-
-    // Ask for grams then add
     if (!mounted) return;
+    _showProductGramsDialog(
+      name: result.name, brand: result.brand,
+      kcal: result.kcalPer100g, protein: result.proteinPer100g,
+      carbs: result.carbsPer100g, fat: result.fatPer100g,
+    );
+  }
+
+  void _showProductGramsDialog({
+    required String name,
+    String brand = '',
+    required double kcal,
+    required double protein,
+    required double carbs,
+    required double fat,
+  }) {
     showDialog(
       context: context,
       builder: (ctx) {
         final gramsCtrl = TextEditingController(text: '100');
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(result.name, style: const TextStyle(fontSize: 15)),
+          title: Text(name, style: const TextStyle(fontSize: 15)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (result.brand.isNotEmpty)
-                Text(result.brand, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              if (brand.isNotEmpty)
+                Text(brand, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _InfoChip('${result.kcalPer100g.round()} kcal'),
-                  _InfoChip('P ${result.proteinPer100g.round()}g'),
-                  _InfoChip('C ${result.carbsPer100g.round()}g'),
-                  _InfoChip('G ${result.fatPer100g.round()}g'),
+                  _InfoChip('${kcal.round()} kcal'),
+                  _InfoChip('P ${protein.round()}g'),
+                  _InfoChip('C ${carbs.round()}g'),
+                  _InfoChip('G ${fat.round()}g'),
                 ],
               ),
               const SizedBox(height: 2),
@@ -949,19 +993,20 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
             ElevatedButton(
               onPressed: () {
                 final g = double.tryParse(gramsCtrl.text) ?? 100;
+                final displayName = brand.isNotEmpty ? '$name ($brand)' : name;
                 setState(() {
                   _ingredients.add(Ingredient(
-                    name: result.displayName,
+                    name: displayName,
                     grams: g,
-                    kcalPer100g: result.kcalPer100g,
-                    proteinPer100g: result.proteinPer100g,
-                    carbsPer100g: result.carbsPer100g,
-                    fatPer100g: result.fatPer100g,
+                    kcalPer100g: kcal,
+                    proteinPer100g: protein,
+                    carbsPer100g: carbs,
+                    fatPer100g: fat,
                   ));
                   _barcodeCtrl.clear();
                 });
                 Navigator.pop(ctx);
-                _tabCtrl.animateTo(1); // go to ingredients tab
+                _tabCtrl.animateTo(1);
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
               child: const Text('Aggiungi'),
@@ -969,6 +1014,117 @@ class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProvide
           ],
         );
       },
+    );
+  }
+
+  void _showManualEntryDialog(String barcode) {
+    final nameCtrl = TextEditingController();
+    final brandCtrl = TextEditingController();
+    final kcalCtrl = TextEditingController();
+    final proteinCtrl = TextEditingController();
+    final carbsCtrl = TextEditingController();
+    final fatCtrl = TextEditingController();
+    bool saveToDb = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Inserimento manuale', style: TextStyle(fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Prodotto non trovato. Inserisci i valori nutrizionali per 100g.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Nome prodotto *'),
+                  textCapitalization: TextCapitalization.sentences,
+                  autofocus: true,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: brandCtrl,
+                  decoration: const InputDecoration(labelText: 'Marca (opzionale)'),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(child: TextField(
+                    controller: kcalCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Kcal *', suffixText: 'kcal'),
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(
+                    controller: proteinCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Proteine', suffixText: 'g'),
+                  )),
+                ]),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextField(
+                    controller: carbsCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Carboidrati', suffixText: 'g'),
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(
+                    controller: fatCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Grassi', suffixText: 'g'),
+                  )),
+                ]),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Checkbox(
+                    value: saveToDb,
+                    onChanged: (v) => setS(() => saveToDb = v ?? true),
+                    activeColor: AppColors.mintDark,
+                  ),
+                  const Expanded(child: Text('Salva per usi futuri', style: TextStyle(fontSize: 13))),
+                ]),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                final kcal = double.tryParse(kcalCtrl.text) ?? 0;
+                final protein = double.tryParse(proteinCtrl.text) ?? 0;
+                final carbs = double.tryParse(carbsCtrl.text) ?? 0;
+                final fat = double.tryParse(fatCtrl.text) ?? 0;
+                final brand = brandCtrl.text.trim();
+
+                if (saveToDb) {
+                  ref.read(customFoodProvider.notifier).add(CustomFoodItem(
+                    name: name, brand: brand, barcode: barcode,
+                    kcalPer100g: kcal, proteinPer100g: protein,
+                    carbsPer100g: carbs, fatPer100g: fat,
+                  ));
+                }
+
+                Navigator.pop(ctx);
+                _showProductGramsDialog(
+                  name: name, brand: brand,
+                  kcal: kcal, protein: protein, carbs: carbs, fat: fat,
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mintDark),
+              child: const Text('Continua'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
