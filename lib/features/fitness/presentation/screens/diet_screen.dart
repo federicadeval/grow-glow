@@ -463,7 +463,7 @@ class _MacroDetail extends StatelessWidget {
   );
 }
 
-class _MealEditSheet extends StatefulWidget {
+class _MealEditSheet extends ConsumerStatefulWidget {
   final MealType type;
   final MealEntry current;
   final void Function(MealEntry) onSave;
@@ -471,10 +471,10 @@ class _MealEditSheet extends StatefulWidget {
   const _MealEditSheet({required this.type, required this.current, required this.onSave});
 
   @override
-  State<_MealEditSheet> createState() => _MealEditSheetState();
+  ConsumerState<_MealEditSheet> createState() => _MealEditSheetState();
 }
 
-class _MealEditSheetState extends State<_MealEditSheet> with SingleTickerProviderStateMixin {
+class _MealEditSheetState extends ConsumerState<_MealEditSheet> with SingleTickerProviderStateMixin {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _kcalCtrl;
   late final TextEditingController _notesCtrl;
