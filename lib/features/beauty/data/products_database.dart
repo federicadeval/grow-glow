@@ -196,6 +196,29 @@ const kProducts = <String, Product>{
   ),
 
   // ─── Retinoidi ────────────────────────────────────────────────
+  'cerave_retinol': Product(
+    id: 'cerave_retinol',
+    fullName: 'CeraVe Skin Renewing Siero con Retinolo',
+    brand: 'CeraVe',
+    shortName: 'CeraVe Retinolo',
+    category: ProductCategory.retinoid,
+    description:
+        'Siero notte con retinolo incapsulato a rilascio graduale per ridurre rughe sottili e migliorare la texture, senza irritare. Formulato con ceramidi, niacinamide e acido ialuronico per mantenere la barriera cutanea intatta durante il trattamento.',
+    howToUse:
+        'Applica la sera su viso pulito e asciutto, 2-3 volte a settimana per iniziare. Stendi uno strato sottile evitando il contorno occhi. Aumenta gradualmente la frequenza a seconda della tolleranza.',
+    keyIngredients: [
+      'Retinolo incapsulato (rilascio lento)',
+      'Ceramidi (1, 3, 6-II)',
+      'Niacinamide (Vitamina B3)',
+      'Acido ialuronico',
+      'Tecnologia MVE a rilascio controllato',
+    ],
+    icon: Icons.nightlight_rounded,
+    timing: ProductTiming.evening,
+    warnings:
+        'Non usare nella stessa sera degli acidi esfolianti. Non usare in gravidanza o allattamento. SPF 50+ il mattino è obbligatorio. Possibile arrossamento iniziale nelle prime settimane — è normale.',
+  ),
+
   'retinal': Product(
     id: 'retinal',
     fullName: 'Avène RetrinAL 0.1% Crema Intensiva Multi-Correttrice',
